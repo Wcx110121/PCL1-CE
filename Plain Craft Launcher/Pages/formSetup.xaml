@@ -283,26 +283,31 @@
                     <Label Content="Minecraft 版本列表" Style="{StaticResource SubTitle}" Width="165"/>
                     <my:Radiobox Context="官方源优先" Width="125"  ToolTip="官方的版本列表最新，但是获取较为缓慢。只要没有获取失败，就建议选择此项。" x:Name="raDownVersion0" Tag="DownVersion/0" />
                     <my:Radiobox Context="BMCLAPI 优先" Width="150" Margin="0"  ToolTip="BMCLAPI 的版本列表需要一定时间来进行更新，所以它不是最新的，但是获取速度比官方源快一些。" x:Name="raDownVersion1" Tag="DownVersion/1" />
+                    <my:Radiobox Context="自动测速" Width="125" Margin="0"  x:Name="raDownVersion2" Tag="DownVersion/2" ToolTip="同时向官方源与 BMCLAPI 发起请求并实测耗时，自动选用响应更快的一方：列表类取先返回的结果，文件类据此决定优先顺序。" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="25,0,0,0" ToolTip="Minecraft 的 Libraries 与 Assets 文件。" Background="#01FFFFFF" Name="panDownAssets">
                     <Label Content="Minecraft 资源文件" Style="{StaticResource SubTitle}" Width="165"/>
                     <my:Radiobox Context="官方源优先" Width="125"  x:Name="raDownAssets0" Tag="DownAssets/0" ToolTip="官方源可以同时下载多个文件。只要没有全部下载失败，就建议选择此项。" />
                     <my:Radiobox Context="BMCLAPI 优先" Width="150" Margin="0"  x:Name="raDownAssets1" Tag="DownAssets/1" ToolTip="BMCLAPI 下载稳定，但只能同时下载 2 个文件。在下载个数上千的资源文件时，这会严重影响下载速度。" />
+                    <my:Radiobox Context="自动测速" Width="125" Margin="0"  x:Name="raDownAssets2" Tag="DownAssets/2" ToolTip="同时向官方源与 BMCLAPI 发起请求并实测耗时，自动选用响应更快的一方：列表类取先返回的结果，文件类据此决定优先顺序。" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="25,0,0,0" ToolTip="Minecraft 的主文件（即版本 Jar）与 Libraries 文件。" Background="#02FFFFFF" Name="panDownMinecraft">
                     <Label Content="Minecraft 支持库" Style="{StaticResource SubTitle}" Width="165"/>
                     <my:Radiobox Context="官方源优先" Width="125"  x:Name="raDownMinecraft0" Tag="DownMinecraft/0" />
                     <my:Radiobox Context="BMCLAPI 优先" Width="150" Margin="0"  x:Name="raDownMinecraft1" Tag="DownMinecraft/1" />
+                    <my:Radiobox Context="自动测速" Width="125" Margin="0"  x:Name="raDownMinecraft2" Tag="DownMinecraft/2" ToolTip="同时向官方源与 BMCLAPI 发起请求并实测耗时，自动选用响应更快的一方：列表类取先返回的结果，文件类据此决定优先顺序。" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="25,0,0,0" Name="panDownOptiFine">
                     <Label Content="OptiFine 主文件" Style="{StaticResource SubTitle}" Width="165"/>
                     <my:Radiobox Context="官方源优先" Width="125"  x:Name="raDownOptiFine0" Tag="DownOptiFine/0" />
                     <my:Radiobox Context="BMCLAPI 优先" Width="150" Margin="0"  x:Name="raDownOptiFine1" Tag="DownOptiFine/1" />
+                    <my:Radiobox Context="自动测速" Width="125" Margin="0"  x:Name="raDownOptiFine2" Tag="DownOptiFine/2" ToolTip="同时向官方源与 BMCLAPI 发起请求并实测耗时，自动选用响应更快的一方：列表类取先返回的结果，文件类据此决定优先顺序。" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="25,0,0,0" Name="panDownForge">
                     <Label Content="Forge 主文件" Style="{StaticResource SubTitle}" Width="165"/>
                     <my:Radiobox Context="官方源优先" Width="125"  x:Name="raDownForge0" Tag="DownForge/0" />
                     <my:Radiobox Context="BMCLAPI 优先" Width="150" Margin="0"  x:Name="raDownForge1" Tag="DownForge/1" />
+                    <my:Radiobox Context="自动测速" Width="125" Margin="0"  x:Name="raDownForge2" Tag="DownForge/2" ToolTip="同时向官方源与 BMCLAPI 发起请求并实测耗时，自动选用响应更快的一方：列表类取先返回的结果，文件类据此决定优先顺序。" />
                 </StackPanel>
 
                 <Label Content="Minecraft" Style="{StaticResource SubTitle}" Name="labDownMinecraft" />
@@ -337,7 +342,6 @@
                             <my:Checkbox Context="只提示正式版 Minecraft 更新"  x:Name="chHomeUpdateRelease" ToolTip="在快照、预发布版更新时不显示更新提示。" Tag="HomeUpdateRelease"/>
                         </StackPanel>
                     </Grid>
-                    <my:Checkbox x:Name="chHomeSave" Context="保存登录状态"  Tag="*HomeSave" ToolTip="保存微软账号的登录凭据（刷新令牌），下次启动可以直接使用，不必重新登录。" />
                     <Grid Margin="0" x:Name="panHomeSave" Height="28" >
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Height="28">
                             <my:Checkbox x:Name="chHomeAutologin" Context="自动登录"  Tag="HomeAutologin"/>

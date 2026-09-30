@@ -1135,7 +1135,8 @@ FinishMinecraftFolderCheck:
                 Dim MSARefreshRaw As String = ReadReg("MSARefreshToken", "")
                 Dim MSARefresh As String = If(MSARefreshRaw = "", "", SerRemove(MSARefreshRaw))
                 If MSARefresh = "" Then GoTo ExitSub
-                If IsAutoLogin And ReadReg("HomeSave", "True") = "False" Then GoTo ExitSub
+                ' 【改造】不再有「是否保存登录状态」开关：保存刷新令牌没有副作用，
+                ' 而关掉它只会让用户每次启动都要重新走一遍设备码登录，因此总是保存。
 
                 ' 先清掉旧令牌，避免静默刷新失败时残留一个过期的 accessToken 被拿去启动游戏
                 WriteReg("AccessToken", "")
@@ -3126,7 +3127,6 @@ Recheck:
             SendStat("反馈", "同时下载文件数", ReadIni("setup", "DownMaxinum", "Default (15)"), ReadIni("setup", "DownMaxinum", "15"))
             SendStat("反馈", "游戏更新提示", ReadIni("setup", "HomeUpdate", "Default (True)"), ReadIni("setup", "HomeUpdate", "True") = "True")
             SendStat("反馈", "游戏更新提示仅正式版", ReadIni("setup", "HomeUpdateRelease", "Default (False)"), ReadIni("setup", "HomeUpdateRelease", "False") = "True")
-            SendStat("反馈", "保存密码", ReadReg("HomeSave", "Default (False)"), ReadReg("HomeSave", "False") = "True")
             SendStat("反馈", "自动登录", ReadIni("setup", "HomeAutologin", "Default (False)"), ReadIni("setup", "HomeAutologin", "False") = "True")
             SendStat("反馈", "自动播放速度", ReadIni("setup", "raHomeAutoplaySpeed", "Default (1)"), ReadIni("setup", "raHomeAutoplaySpeed", "1"))
             SendStat("反馈", "推荐源：PCL", ReadIni("setup", "HomePCLPush", "Default (True)"), ReadIni("setup", "HomePCLPush", "True") = "True")

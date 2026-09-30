@@ -1,4 +1,4 @@
-Imports System.Drawing.Imaging
+﻿Imports System.Drawing.Imaging
 Imports System.Reflection
 Imports System.Security.Cryptography
 Imports System.Windows.Threading
@@ -1199,6 +1199,68 @@ Public Module Modules
         Return Result
     End Function
 
+    Private _SourceSpeedTested As Boolean = False
+    Private _MojangFaster As Boolean = True
+    ''' <summary>
+    ''' 【改造】下载源自动测速：测量官方源与 BMCLAPI 的响应耗时，判断哪一个更快。
+    ''' 结果在本次运行内缓存，避免每次下载都重复测速。
+    ''' </summary>
+    ''' <returns>True 表示官方源更快。</returns>
+    Public Function IsMojangFaster() As Boolean
+        If _SourceSpeedTested Then Return _MojangFaster
+        _SourceSpeedTested = True
+        Try
+            Dim MojangTime As Integer = MeasureSourceSpeed("https://launchermeta.mojang.com/mc/game/version_manifest.json")
+            Dim MirrorTime As Integer = MeasureSourceSpeed("https://bmclapi2.bangbang93.com/mc/game/version_manifest.json")
+            _MojangFaster = (MojangTime <= MirrorTime)
+            log("[Download] 下载源测速：官方源 " & MojangTime & " ms，BMCLAPI " & MirrorTime & " ms，优先使用" & If(_MojangFaster, "官方源", "BMCLAPI"))
+        Catch ex As Exception
+            log("[Download] 下载源测速失败，按官方源优先处理：" & GetStringFromException(ex))
+            _MojangFaster = True
+        End Try
+        Return _MojangFaster
+    End Function
+
+    ''' <summary>
+    ''' 【改造】测量一个地址的响应耗时（毫秒）。只读取前 1 KB 即可判断延迟，失败返回 Integer.MaxValue。
+    ''' 用 TickCount 相减计时，即使跨越回绕点结果也正确。
+    ''' </summary>
+    Private Function MeasureSourceSpeed(ByVal URL As String) As Integer
+        Try
+            Dim Req As HttpWebRequest = CType(WebRequest.Create(URL), HttpWebRequest)
+            Req.AutomaticDecompression = DecompressionMethods.GZip Or DecompressionMethods.Deflate
+            Req.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+            Req.Timeout = 8000
+            Req.ReadWriteTimeout = 8000
+            Dim StartTick As Integer = Environment.TickCount
+            Using Resp As WebResponse = Req.GetResponse()
+                Using St As IO.Stream = Resp.GetResponseStream()
+                    Dim Buffer(1023) As Byte
+                    St.Read(Buffer, 0, Buffer.Length)
+                End Using
+            End Using
+            Return Environment.TickCount - StartTick
+        Catch
+            Return Integer.MaxValue
+        End Try
+    End Function
+
+    ''' <summary>
+    ''' 【改造】读取某个下载源设置，判断是否选择了「自动测速」（值为 2）。
+    ''' </summary>
+    Public Function IsAutoSource(ByVal Key As String, ByVal DefaultValue As String) As Boolean
+        Return ReadIni("setup", Key, DefaultValue) = "2"
+    End Function
+
+    ''' <summary>
+    ''' 【改造】根据下载源设置决定「是否让官方源排前面」。
+    ''' 值为 2（自动测速）时先实测两个源的耗时，其余情况沿用原有语义（0 = 官方优先）。
+    ''' </summary>
+    Public Function IsMojangFirst(ByVal Key As String, ByVal DefaultValue As String) As Boolean
+        Dim Setting As String = ReadIni("setup", Key, DefaultValue)
+        If Setting = "2" Then Return IsMojangFaster()
+        Return Setting = "0"
+    End Function
     ''' <summary>
     ''' 带兜底的下载：优先用系统 TLS（schannel），失败且属于 TLS / 证书类问题时
     ''' 改用纯托管 TLS（BouncyCastle）重试，让没装 TLS 1.2 补丁的 XP 也能下载。

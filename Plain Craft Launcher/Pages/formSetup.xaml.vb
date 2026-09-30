@@ -103,7 +103,6 @@
             '读取设置：主页设置
             chHomeUpdate.Checked = ReadIni("setup", "HomeUpdate", "True")
             chHomeUpdateRelease.Checked = ReadIni("setup", "HomeUpdateRelease", "False")
-            chHomeSave.Checked = ReadReg("HomeSave", "True")
             chHomeEnabled.Checked = ReadIni("setup", "HomeEnabled", "False") ' 【改造】推荐源的服务均已停止，默认关闭
             chHomeAutologin.Checked = ReadIni("setup", "HomeAutologin", "True")
             chHomeAutoplay.Checked = ReadIni("setup", "HomeAutoplay", "True")
@@ -164,7 +163,7 @@
 
 #Region "通用设置更改"
 
-    Private Sub CheckBox_Change(ByVal sender As Checkbox, ByVal raiseByMouse As Boolean) Handles chSysTest.Change, chSysOffline.Change, chSysUpdate.Change, chSysUpdateTest.Change, chUiShowLogo.Change, chUiHiddenDownload.Change, chUiHiddenForge.Change, chUiHiddenMinecraft.Change, chUiHiddenOptiFine.Change, chUiHiddenSetup.Change, chHomeEnabled.Change, chLaunchNatives.Change, chDownMinecraftAssetsAuto.Change, chDownMinecraftAssetsHint.Change, chDownOptiFineFolder.Change, chDownOptiFineOpen.Change, chDownProcess.Change, chHomeAutologin.Change, chHomeAutoplay.Change, chHomePCLPush.Change, chHomeSave.Change, chHomeUpdate.Change, chHomeUpdateRelease.Change, chHomeVersionOld.Change, chHomeVersionSwap.Change, chLaunchLog.Change, chLaunchMending.Change, chLaunchLogWarn.Change, chLaunchTopmost.Change, chHomeMCBBSPush.Change, chHomeMojangPush.Change, chHomeTbPush.Change, chHomeForumPush.Change, chHomeHide.Change, chHomeFull.Change, chUiBgmAuto.Change, chSysFeed.Change
+    Private Sub CheckBox_Change(ByVal sender As Checkbox, ByVal raiseByMouse As Boolean) Handles chSysTest.Change, chSysOffline.Change, chSysUpdate.Change, chSysUpdateTest.Change, chUiShowLogo.Change, chUiHiddenDownload.Change, chUiHiddenForge.Change, chUiHiddenMinecraft.Change, chUiHiddenOptiFine.Change, chUiHiddenSetup.Change, chHomeEnabled.Change, chLaunchNatives.Change, chDownMinecraftAssetsAuto.Change, chDownMinecraftAssetsHint.Change, chDownOptiFineFolder.Change, chDownOptiFineOpen.Change, chDownProcess.Change, chHomeAutologin.Change, chHomeAutoplay.Change, chHomePCLPush.Change, chHomeUpdate.Change, chHomeUpdateRelease.Change, chHomeVersionOld.Change, chHomeVersionSwap.Change, chLaunchLog.Change, chLaunchMending.Change, chLaunchLogWarn.Change, chLaunchTopmost.Change, chHomeMCBBSPush.Change, chHomeMojangPush.Change, chHomeTbPush.Change, chHomeForumPush.Change, chHomeHide.Change, chHomeFull.Change, chUiBgmAuto.Change, chSysFeed.Change
         If Not CanWrite Then Exit Sub
 
         '读取数据
@@ -477,7 +476,7 @@ NoError:
         End Select
 
     End Sub
-    Private Sub ShowHide_Change(ByVal sender As Object, ByVal raiseByMouse As Boolean) Handles chSysUpdate.Change, raUiTheme4.Change, chUiBackground.Change, raLaunchMode1.Change, chDownMinecraftAssetsHint.Change, chHomeUpdate.Change, chHomeSave.Change, chHomeAutoplay.Change, raLaunchVisibility0.Change, raLaunchSkin3.Change, chUiBgm.Change
+    Private Sub ShowHide_Change(ByVal sender As Object, ByVal raiseByMouse As Boolean) Handles chSysUpdate.Change, raUiTheme4.Change, chUiBackground.Change, raLaunchMode1.Change, chDownMinecraftAssetsHint.Change, chHomeUpdate.Change, chHomeAutoplay.Change, raLaunchVisibility0.Change, raLaunchSkin3.Change, chUiBgm.Change
         '判定是否显示
         Dim IsShow As Boolean = sender.Checked
         If sender.Name = "raLaunchVisibility0" Or sender.Name = "raLaunchMode1" Then IsShow = Not IsShow

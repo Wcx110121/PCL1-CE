@@ -415,7 +415,7 @@ NextFile:
         Dim Source As New ArrayList
         For Each File As GameLibFile In FileList
             If File.LocalPath.Contains("minecraftforge") Then
-                If ReadIni("setup", "DownForge", "1") = "0" Then '官方源优先
+                If IsMojangFirst("DownForge", "1") Then '官方源优先（选择自动测速时为实测结果）
                     Source.Add(New WebRequireFile With {
                                 .WebURLs = New ArrayList From {
                                     "https://maven.minecraftforge.net" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/").Replace(".jar", "-universal.jar"),
@@ -446,8 +446,8 @@ NextFile:
                             .KnownFileSize = File.Size
                         })
             Else
-                If ReadIni("setup", "DownMinecraft", "1") = "0" Then
-                    '官方源优先
+                If IsMojangFirst("DownMinecraft", "1") Then
+                    '官方源优先（选择自动测速时为实测结果）
                     Source.Add(New WebRequireFile With {
                                 .WebURLs = New ArrayList From {
                                     "https://libraries.minecraft.net" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/"),
@@ -688,7 +688,8 @@ FinishJson:
         '另外本段的所有下载地址均已由明文 HTTP 改为 HTTPS：
         'Mojang 的 resources.download.minecraft.net 对 HTTP 请求直接返回 400，
         '而 BMCLAPI 的 HTTP 需要经过一次 301 跳转（系统下载并不跟随跳转），两者都会白白拖慢下载。
-        Dim MojangFirst As Boolean = (ReadIni("setup", "DownAssets", "0") = "0")
+        ' 【改造】选择「自动测速」时（值为 2）先实测官方源与 BMCLAPI 的耗时，再决定哪个排在前面
+        Dim MojangFirst As Boolean = IsMojangFirst("DownAssets", "0")
         For Each AssetFile As GameAssetsFile In FileList
             If MojangFirst Then
                 KVList.Add(New WebRequireFile With {

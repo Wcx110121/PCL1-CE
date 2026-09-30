@@ -381,12 +381,22 @@ Public Class formDownloadLeft
             Dim OfficialUrl As String = "https://launchermeta.mojang.com/mc/game/version_manifest.json"
             Dim MirrorUrl As String = "https://bmclapi2.bangbang93.com/mc/game/version_manifest.json"
             Dim Winner As String = ""
-            If ReadIni("setup", "DownVersion", "0") = "0" Then
+            Dim VersionSource As String = ReadIni("setup", "DownVersion", "2")
+            If VersionSource = "2" Then
+                '自动测速：两个源同时请求，取先返回的有效结果
                 MinecraftInfo = GetWebsiteCodeRace(OfficialUrl, MirrorUrl, Encoding.Default, Winner, 300)
+            ElseIf VersionSource = "1" Then
+                'BMCLAPI 优先
+                Winner = MirrorUrl
+                MinecraftInfo = GetWebsiteCode(MirrorUrl, Encoding.Default)
+                If Len(MinecraftInfo) < 300 Then MinecraftInfo = GetWebsiteCode(OfficialUrl, Encoding.Default)
             Else
-                MinecraftInfo = GetWebsiteCodeRace(MirrorUrl, OfficialUrl, Encoding.Default, Winner, 300)
+                '官方源优先
+                Winner = OfficialUrl
+                MinecraftInfo = GetWebsiteCode(OfficialUrl, Encoding.Default)
+                If Len(MinecraftInfo) < 300 Then MinecraftInfo = GetWebsiteCode(MirrorUrl, Encoding.Default)
             End If
-            If IsShowHint AndAlso Winner = MirrorUrl Then ShowHint("已自动选用 BMCLAPI 获取 Minecraft 版本列表")
+            If IsShowHint AndAlso VersionSource <> "2" AndAlso Winner = MirrorUrl Then ShowHint("已切换为 BMCLAPI 获取 Minecraft 版本列表")
             If Len(MinecraftInfo) < 300 Then Throw New WebException("获取到的列表长度不足：" & MinecraftInfo)
         Catch ex As Exception
             ExShow(ex, "获取 Minecraft 版本列表失败")
@@ -477,7 +487,7 @@ Public Class formDownloadLeft
                                  Try
                                      Directory.CreateDirectory(local)
                                      Dim DownloadList As ArrayList
-                                     If ReadIni("setup", "DownMinecraft", "1") = "0" Then
+                                     If IsMojangFirst("DownMinecraft", "1") Then
                                          '官方源优先
                                          DownloadList = New ArrayList({
                                                      Ver.url.Replace("https://launcher.mojang.com", "https://bmclapi2.bangbang93.com").Replace("https://launchermeta.mojang.com", "https://bmclapi2.bangbang93.com"),
@@ -503,7 +513,7 @@ Public Class formDownloadLeft
                                                           size = 1024 * 50
                                                       End Try
                                                       Dim url As New ArrayList
-                                                      If ReadIni("setup", "DownMinecraft", "1") = "0" Then
+                                                      If IsMojangFirst("DownMinecraft", "1") Then
                                                           'Mojang 优先
                                                           url.Add(json("downloads")("client")("url").ToString)
                                                           url.Add(json("downloads")("client")("url").ToString.Replace("https://launcher.mojang.com", "https://bmclapi2.bangbang93.com").Replace("https://launchermeta.mojang.com", "https://bmclapi2.bangbang93.com"))
@@ -638,9 +648,21 @@ Public Class formDownloadLeft
         ' 开启 gzip 后实测 BMCLAPI（515 ms）比官方页面（1154 ms）更快，
         ' 且 BMCLAPI 的数据更完整（498 条对 223 条），因此多数情况下会选到 BMCLAPI。
         Dim Winner As String = ""
+        Dim OptiFineSource As String = ReadIni("setup", "DownOptiFine", "2")
         Try
             log("[DownloadLeft] 获取 OptiFine 版本列表开始")
-            OptiFineInfo = GetWebsiteCodeRace(OfficialUrl, MirrorUrl, Encoding.Default, Winner)
+            If OptiFineSource = "2" Then
+                '自动测速
+                OptiFineInfo = GetWebsiteCodeRace(OfficialUrl, MirrorUrl, Encoding.Default, Winner)
+            ElseIf OptiFineSource = "1" Then
+                'BMCLAPI 优先
+                Winner = MirrorUrl
+                OptiFineInfo = GetWebsiteCode(MirrorUrl, Encoding.Default)
+            Else
+                '官方源优先
+                Winner = OfficialUrl
+                OptiFineInfo = GetWebsiteCode(OfficialUrl, Encoding.Default)
+            End If
         Catch ex As Exception
             ExShow(ex, "获取 OptiFine 版本列表失败")
             OptiFineInfo = ""
