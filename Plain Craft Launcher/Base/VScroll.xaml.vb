@@ -33,18 +33,41 @@ Public Class VScroll
     ''' <ValueMe></ValueMe>
     ''' <returns></returns>
     ''' <remarks></remarks>
+    ''' <summary>
+    ''' 【修复】滑块可移动的距离，即滑块能到达的最高位置。
+    ''' </summary>
+    Public ReadOnly Property DragRange As Double
+        Get
+            Return Math.Max(0, MaxValueMe - QuoteValueMe)
+        End Get
+    End Property
+
+    ''' <summary>
+    ''' 【修复】内容可滚动的距离。
+    ''' </summary>
+    Public ReadOnly Property ScrollRange As Double
+        Get
+            Return Math.Max(0, MaxValue - QuoteValue)
+        End Get
+    End Property
+
     Public Property ValueMe As Double
         Get
             Return btnDrag.Margin.Top
         End Get
         Set(ByVal ValueMe As Double)
             If QuoteValue = 0 Then Exit Property
-            SetTop(btnDrag, MathRange(ValueMe, 0, MaxValueMe - QuoteValueMe))
-            SetTop(Control, -MathRange(
-                       If(QuoteValueMe = 15, (MaxValue - QuoteValue) / (MaxValueMe - QuoteValueMe) * ValueMe, MaxValue / QuoteValue * ValueMe),
-                   0, MaxValue - QuoteValue))
+            ' 【修复】原先滑块位置与内容偏移之间存在两套不同的换算公式：拖动滑块时使用
+            ' MaxValue / QuoteValue，而滚轮经由 Value 属性又使用 MaxValueMe / MaxValue。
+            ' 两者只有在滚动条高度恰好等于列表可视高度时才互为逆运算，而滚动条带有 Margin，
+            ' 通常并不相等。于是「把滑块拖到底」与「滚轮滚到底」算出的位置并不一致，
+            ' 表现为拖到底之后滚轮仍能继续往下翻。这里统一按比例映射，两个方向严格互逆。
+            Dim NewTop As Double = MathRange(ValueMe, 0, DragRange)
+            SetTop(btnDrag, NewTop)
+            SetTop(Control, -If(DragRange = 0, 0, NewTop / DragRange * ScrollRange))
         End Set
     End Property
+
 
     ''' <summary>
     ''' 按钮高度。
@@ -83,8 +106,11 @@ Public Class VScroll
         Get
             Return If(IsNothing(Control), 0, -Control.Margin.Top)
         End Get
-        Set(ByVal ValueMe As Double)
-            Me.ValueMe = If(QuoteValueMe = 15, (MaxValueMe - QuoteValueMe) / (MaxValue - QuoteValue) * ValueMe, MaxValueMe / MaxValue * ValueMe)
+        Set(ByVal NewValue As Double)
+            ' 【修复】与 ValueMe 使用同一套映射的逆运算，并在此完成范围限制，
+            ' 保证 Value 与滑块位置始终指向同一个位置。
+            Dim Clamped As Double = MathRange(NewValue, 0, ScrollRange)
+            ValueMe = If(ScrollRange = 0, 0, Clamped / ScrollRange * DragRange)
         End Set
     End Property
 
@@ -266,16 +292,12 @@ Public Class VScroll
     ''' <remarks></remarks>
     Public Sub RunMouseWheel(ByVal sender As Object, ByVal e As System.Windows.Input.MouseWheelEventArgs)
         If Me.Visibility = Visibility.Visible Then
-            ' 【修复】动画组的名称原本每次都调用 GetUUID() 生成一个全新的 UUID。
-            ' 而 AniStart 只有在「名称重复」时才会停止上一个动画组，于是每一次滚轮都会新增一个
-            ' 各自为政的滚动动画：连续滚动时多个动画互相覆盖，滚动距离被吞掉，
-            ' 表现出来就是滚轮翻不到底、以及滚一段又弹回去。这里改用本控件固定且唯一的名称，
-            ' 让新的滚动动画直接替换掉上一个。
-            If Len(Me.Name) < 1 Then Me.Name = "Aniamtioner" & GetUUID() '确保这个控件有名称
-            '如果时间为负数就不会执行，所以加绝对值
-            AniStart({
-                     AaValue(Me, -e.Delta, Math.Abs(e.Delta) * 2, , New AniEaseEnd)
-                 }, "Scroll" & Me.Name, False)
+            ' 【修复】这里原先给 Value 属性挂了一个滚动动画。该动画是逐帧累加增量的，
+            ' 当动画被新的滚动替换、再叠加缓动收尾与帧计时时，增量会失真，个别帧甚至算出负值，
+            ' 于是出现「滚动结束时轻微上下抖动」，乃至「往下滚却向上跑」。
+            ' 滚轮本身是离散输入，这里直接设置目标位置并完成范围限制，行为与系统原生滚动一致，
+            ' 也就不再需要靠动画组名去停止上一次滚动。
+            Value = MathRange(Value - e.Delta, 0, ScrollRange)
         End If
     End Sub
 
@@ -287,14 +309,17 @@ Public Class VScroll
     ''' <remarks></remarks>
     Private Sub btnBack_MouseUp(ByVal sender As Object, ByVal e As System.Windows.Input.MouseButtonEventArgs) Handles btnBack.MouseUp
         If btnDrag.IsMouseOver Then Exit Sub '点在空白部分
+        ' 【修复】与滚轮同样的问题：动画组名每次用 GetUUID() 都会新建一个动画组，
+        ' 而 AniStart 只在名称重复时才会停止上一个动画组，导致翻页动画互相叠加。改为固定名称。
+        If Len(Me.Name) < 1 Then Me.Name = "Aniamtioner" & GetUUID() '确保这个控件有名称
         If e.GetPosition(btnDrag).Y < 0 Then
             AniStart({
                      AaValue(Me, -QuoteValue, 200, , New AniEaseEnd)
-                 }, "ScrollClick" & GetUUID(), False)
+                 }, "ScrollClick" & Me.Name, False)
         Else
             AniStart({
                      AaValue(Me, QuoteValue, 200, , New AniEaseEnd)
-                 }, "ScrollClick" & GetUUID(), False)
+                 }, "ScrollClick" & Me.Name, False)
         End If
     End Sub
 
