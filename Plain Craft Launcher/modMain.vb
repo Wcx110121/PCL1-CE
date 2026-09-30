@@ -1,19 +1,23 @@
-﻿Imports Ionic.Zip
+Imports Ionic.Zip
 
 Public Module modMain
 
 #Region "声明"
 
     '常量
-    Public Const VERSION_NAME As String = "1.0.9"
+    ' 【改造】名称改为社区衍生版 PCL1-CE。
+    ' 注意 APPLICATION_SHORT_NAME 必须保持 "PCL" —— 它不是显示名，
+    ' 而是注册表路径（Software\PCL）和 launcher_profiles.json 里的标识，
+    ' 改了会让已有用户的配置全部失效。
+    Public Const VERSION_NAME As String = "1.0.9-CE"
     Public Const VERSION_CODE As Integer = 52
     Public Const MC_VERSION_CODE As Integer = 7
     Public Const PUSH_VERSION_CODE As Integer = 2
     Public Const MAINFORM_HEIGHT As Integer = 435
     Public Const MAINFORM_WIDTH As Integer = 760
-    Public Const MAINFORM_NAME As String = "Plain Craft Launcher"
+    Public Const MAINFORM_NAME As String = "PCL1-CE"
     Public Const APPLICATION_SHORT_NAME As String = "PCL"
-    Public Const APPLICATION_FULL_NAME As String = "Plain Craft Launcher"
+    Public Const APPLICATION_FULL_NAME As String = "PCL1-CE"
     Public Const DOWNLOADING_END As String = ".PCLdownloading"
     Public Const TX_SREVER_1 As String = "http://pcl-1253424809.cosgz.myqcloud.com/"
     Public Const TX_SREVER_2 As String = "http://pcl-1254159202.costj.myqcloud.com/"
@@ -516,10 +520,252 @@ Fail:
 #Region "登录"
 
     ''' <summary>
-    ''' 进行Login方式的正版登录。
+    ''' 把微软登录结果转换成旧版 Yggdrasil 响应格式的 JSON。
+    ''' PCL1 里有若干处都用 ReadJson(LoginResult)("selectedProfile")("name") 取玩家信息
+    ''' （皮肤加载、正版启动参数、界面显示），保持这个结构可以避免大范围改动。
     ''' </summary>
-    ''' <param name="Email">邮箱地址。</param>
-    ''' <param name="Pass">明文密码。</param>
+    Private Function BuildCompatLoginJson(ByVal Result As ModAuth.MSALoginResult) As String
+        Dim json As New JObject
+        json("accessToken") = Result.MinecraftToken
+        json("clientToken") = ""
+        Dim profile As New JObject
+        profile("id") = Result.PlayerUUID
+        profile("name") = Result.PlayerName
+        json("selectedProfile") = profile
+        Return json.ToString(Newtonsoft.Json.Formatting.None)
+    End Function
+
+    ''' <summary>
+    ''' 保存一次成功的微软登录结果。
+    ''' </summary>
+    Private Sub SaveMSALoginResult(ByVal Result As ModAuth.MSALoginResult)
+        WriteReg("AccessToken", SerAdd(Result.MinecraftToken))
+        WriteReg("MSARefreshToken", SerAdd(Result.MsaRefreshToken))
+        WriteReg("MojangPlayerName", Result.PlayerName)
+        WriteReg("MojangPlayerUUID", Result.PlayerUUID)
+        ' ClientToken 是 Yggdrasil 时代的产物，这里置空但保留键位以免旧代码读到 Nothing
+        WriteReg("ClientToken", "")
+        LoginResult = BuildCompatLoginJson(Result)
+        Try
+            WriteIni("cache\skin\UUID", Result.PlayerName, Result.PlayerUUID)
+        Catch
+        End Try
+    End Sub
+
+    ''' <summary>防止用户重复点击导致同时跑起多个登录流程。</summary>
+    Private MSALoginRunning As Boolean = False
+
+    ''' <summary>
+    ''' 交互式微软账号登录（OAuth 2.0 设备码流程）。必须在后台线程中调用。
+    ''' 流程：申请设备码 → 弹窗让用户去 microsoft.com/link 输入 → 轮询等待授权
+    '''       → Xbox Live → XSTS → Minecraft 服务 → 查询正版档案。
+    ''' </summary>
+    Public Function MSALoginInteractiveFlow() As Boolean
+        If MSALoginRunning Then
+            ShowHint("微软登录已经在进行中了，请先完成当前这次授权")
+            Return False
+        End If
+        MSALoginRunning = True
+        Try
+            Return MSALoginInteractiveFlowCore()
+        Finally
+            MSALoginRunning = False
+        End Try
+    End Function
+
+    Private Function MSALoginInteractiveFlowCore() As Boolean
+        If MODE_OFFLINE Then
+            ShowHint(New HintConverter("没有网络连接，无法登录", HintState.Warn))
+            Return False
+        End If
+
+        ' 检查 client_id 是否已配置。未配置时直接提供「粘贴 ID」的入口，
+        ' 而不是让用户自己去建文件、手工填 —— 那个流程太绕了。
+        If ModAuth.ClientId = "" Then
+            Dim choice As Integer = MyMsgbox(
+                "微软账号登录需要一个「应用(客户端) ID」—— 它是启动器向微软报备的身份标识，" & vbCrLf &
+                "类似某个 App 想支持「微信登录」就得先去微信开放平台注册。" & vbCrLf & vbCrLf &
+                "这个 ID 不是密码，可以公开，注册免费、大约 5 分钟。" & vbCrLf & vbCrLf &
+                "如果你已经有 ID，点「粘贴 ID」；还没有就点「查看注册步骤」。",
+                "微软登录尚未配置", "粘贴 ID", "查看注册步骤", "取消")
+            If choice = 1 Then
+                If Not AskForClientId() Then Return False
+            ElseIf choice = 2 Then
+                MyMsgbox(ModAuth.ClientIdHelpText(), "注册步骤", "知道了")
+                Return False
+            Else
+                Return False
+            End If
+        End If
+
+        ' 如果之前授权过（存了 refresh token），先试一次静默刷新。
+        ' 这样失败重试时不用每次都让用户拿手机重新走一遍授权 —— 排查问题时这点很关键。
+        Dim CachedRefresh As String = SerRemove(ReadReg("MSARefreshToken", ""))
+        If CachedRefresh <> "" Then
+            log("[Login] 发现已保存的微软凭据，先尝试静默登录")
+            Dim Silent As ModAuth.MSALoginResult = ModAuth.MSALoginByRefresh(CachedRefresh)
+            If Silent.Success Then
+                SaveMSALoginResult(Silent)
+                RefreshLoginUI(Silent)
+                ShowHint(New HintConverter("已用保存的凭据登录：" & Silent.PlayerName, HintState.Finish))
+                Return True
+            End If
+            log("[Login] 静默登录失败，转为交互式授权：" & Silent.ErrorMessage)
+        End If
+
+        ' 清掉可能已失效的旧令牌
+        WriteReg("AccessToken", "")
+        WriteReg("ClientToken", "")
+
+        ' 第一步：申请设备码
+        Dim Info As ModAuth.MSADeviceCodeInfo
+        Try
+            Info = ModAuth.MSARequestDeviceCode()
+        Catch ex As Exception
+            ShowHint(New HintConverter("申请登录代码失败：" & ex.Message, HintState.Critical))
+            Return False
+        End Try
+
+        ' 第二步：把代码展示给用户。
+        ' MyMsgbox 在后台线程被调用时会自动排队到主线程显示、并阻塞等待点击，正是这里需要的行为。
+        ' 顺手把代码放进剪贴板 —— 设备码形如 ABCD-EFGH，手抄很容易出错。
+        Dim Copied As Boolean = False
+        Try
+            frmMain.Dispatcher.Invoke(Sub() System.Windows.Clipboard.SetText(Info.UserCode))
+            Copied = True
+        Catch ex As Exception
+            log("[Login] 复制设备码到剪贴板失败：" & ex.Message)
+        End Try
+
+        Dim Caption As String =
+            "请用手机或另一台电脑打开下面的网址，输入这个代码完成授权：" & vbCrLf & vbCrLf &
+            "        " & ModAuth.URL_MSA_LINK & vbCrLf & vbCrLf &
+            "代码：" & Info.UserCode & If(Copied, "（已复制到剪贴板）", "") & vbCrLf & vbCrLf &
+            "代码 " & (Info.ExpiresIn \ 60) & " 分钟内有效。" & vbCrLf &
+            "在网页上完成授权后，回到这里点击「我已完成」。"
+        If MyMsgbox(Caption, "微软账号登录", "我已完成", "取消") <> 1 Then
+            ShowHint("已取消微软账号登录")
+            Return False
+        End If
+
+        ' 第三步：等待授权并换取 Minecraft 令牌
+        ShowHint("正在等待微软授权结果…")
+        Dim Result As ModAuth.MSALoginResult = ModAuth.MSALoginWithDeviceCode(Info, AddressOf MSALoginStatus)
+        ' 【重要】即使后面的 Xbox / Minecraft 步骤失败，也要把微软账号的 refresh token 存下来。
+        ' 否则用户每次重试都得重新用手机授权一遍，排查问题时极其折磨人。
+        ' 存下之后，下次重试会先走静默刷新，只有 refresh token 失效时才需要重新授权。
+        If Result.MsaRefreshToken <> "" Then
+            WriteReg("MSARefreshToken", SerAdd(Result.MsaRefreshToken))
+        End If
+        If Not Result.Success Then
+            ' 登录失败时把本机的 TLS 环境一并显示出来。
+            ' XP 上最常见的两类失败是「schannel 不支持 TLS 1.2」和「根证书过旧」，
+            ' 只有把环境信息摆出来，用户才知道该去装补丁还是该开证书兼容模式。
+            MyMsgbox("微软登录失败：" & vbCrLf & vbCrLf & Result.ErrorMessage & vbCrLf & vbCrLf &
+                     "—— 本机环境 ——" & vbCrLf & ModAuth.DescribeLocalTls(),
+                     "微软登录失败", "知道了")
+            Return False
+        End If
+
+        ' 第四步：保存并刷新界面
+        SaveMSALoginResult(Result)
+        RefreshLoginUI(Result)
+        ShowHint(New HintConverter("微软账号登录成功：" & Result.PlayerName, HintState.Finish))
+        Return True
+    End Function
+
+    ''' <summary>
+    ''' 登录成功后刷新界面与正版皮肤（静默登录和交互登录共用）。
+    ''' </summary>
+    Private Sub RefreshLoginUI(ByVal Result As ModAuth.MSALoginResult)
+        If frmHomeRight Is Nothing Then Return
+        Try
+            frmHomeRight.Dispatcher.Invoke(Sub()
+                                               frmHomeRight.LoginMethod = LoginMethods.Mojang
+                                               frmHomeRight.StartButtonRefresh()
+                                           End Sub)
+        Catch ex As Exception
+            log("[Login] 刷新登录界面失败：" & ex.Message)
+        End Try
+        ' 加载正版皮肤（失败不影响登录结果）
+        Try
+            Dim SkinAddress As String = DownloadSkin(Result.PlayerUUID)
+            If SkinAddress <> "" Then
+                frmHomeRight.Dispatcher.Invoke(Sub() frmHomeRight.LoadMojangSkin(SkinAddress))
+            End If
+        Catch ex As Exception
+            log("[Login] 加载皮肤失败：" & ex.Message)
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' 弹出输入框让用户粘贴 client_id 并写入配置文件。返回 True 表示配置完成。
+    ''' </summary>
+    Private Function AskForClientId() As Boolean
+        Dim Id As String = ""
+        Try
+            frmMain.Dispatcher.Invoke(Sub()
+                                          Id = Microsoft.VisualBasic.Interaction.InputBox(
+                                              "请粘贴 Azure 应用(客户端) ID，然后点「确定」：" & vbCrLf & vbCrLf &
+                                              "（形如 12345678-1234-1234-1234-123456789abc）",
+                                              "配置微软登录", "")
+                                      End Sub)
+        Catch ex As Exception
+            log("[Login] 打开 client_id 输入框失败：" & ex.Message)
+            Return EditClientIdWithNotepad()
+        End Try
+
+        Id = If(Id, "").Trim()
+        If Id = "" Then Return False
+
+        Try
+            System.IO.Directory.CreateDirectory(PATH & "PCL")
+            System.IO.File.WriteAllText(PATH & ModAuth.CLIENT_ID_FILE, Id, New System.Text.UTF8Encoding(False))
+            ModAuth.ReloadClientId()
+            log("[Login] client_id 已保存")
+            ShowHint(New HintConverter("微软登录已配置好，正在开始登录…", HintState.Finish))
+            Return True
+        Catch ex As Exception
+            MyMsgbox("保存 client_id 失败：" & ex.Message & vbCrLf & vbCrLf &
+                     "请改用手工方式，把 ID 写进下面这个文件（一行纯文本）：" & vbCrLf &
+                     PATH & ModAuth.CLIENT_ID_FILE, "配置微软登录", "知道了")
+            Return False
+        End Try
+    End Function
+
+    ''' <summary>输入框不可用时的兜底：用记事本打开配置文件让用户自己填。</summary>
+    Private Function EditClientIdWithNotepad() As Boolean
+        Try
+            Dim configPath As String = PATH & ModAuth.CLIENT_ID_FILE
+            System.IO.Directory.CreateDirectory(PATH & "PCL")
+            If Not System.IO.File.Exists(configPath) Then
+                System.IO.File.WriteAllText(configPath, "", New System.Text.UTF8Encoding(False))
+            End If
+            Process.Start("notepad.exe", """" & configPath & """")
+            MyMsgbox("已用记事本打开配置文件。" & vbCrLf & vbCrLf &
+                     "请把申请到的 client_id 粘贴进去、保存，然后重新点击登录。",
+                     "配置微软登录", "知道了")
+        Catch ex As Exception
+            MyMsgbox("打开配置方式失败：" & ex.Message, "配置微软登录", "知道了")
+        End Try
+        Return False
+    End Function
+
+    ''' <summary>
+    ''' 登录过程的状态回调（在后台线程执行）。
+    ''' </summary>
+    Private Sub MSALoginStatus(ByVal Message As String)
+        log("[Login] " & Message)
+    End Sub
+
+    ''' <summary>
+    ''' 【已废弃】Login（邮箱 + 密码）方式的正版登录。
+    ''' Mojang 的 Yggdrasil 认证服务 authserver.mojang.com 已于 2023 年随账号体系迁移而关闭，
+    ''' 该域名当前 DNS 已悬空、无法解析。本函数不再被任何代码调用，保留仅为对照历史实现。
+    ''' 现代登录请使用 MSALoginInteractiveFlow。
+    ''' </summary>
+    ''' <param name="Email">邮箱地址（已不再使用）。</param>
+    ''' <param name="Pass">明文密码（已不再使用）。</param>
     ''' <returns></returns>
     ''' <remarks></remarks>
     Public Function OnlineLogin(ByVal Email As String, ByVal Pass As String) As String
@@ -565,10 +811,11 @@ Fail:
         End Try
     End Function
     ''' <summary>
-    ''' 进行Refresh方式的正版登录。
+    ''' 【已废弃】Refresh 方式的正版登录（同上，Yggdrasil 服务已关闭，不再被调用）。
+    ''' 静默刷新现在由 ModAuth.MSALoginByRefresh 负责。
     ''' </summary>
-    ''' <param name="AccessToken">在Login登录中存储的AccessToken。</param>
-    ''' <param name="ClientToken">在Login登录中存储的ClientToken。</param>
+    ''' <param name="AccessToken">已不再使用。</param>
+    ''' <param name="ClientToken">已不再使用。</param>
     ''' <returns></returns>
     ''' <remarks></remarks>
     Public Function RefreshLogin(ByVal AccessToken As String, ByVal ClientToken As String) As String
@@ -876,17 +1123,28 @@ FinishMinecraftFolderCheck:
         Try
             If MODE_OFFLINE Then Exit Sub
             SyncLock PoolLoginLock
-                If (Not ReadReg("Email").Contains("@")) Or (Len(ReadReg("Password")) < 4) Or (IsAutoLogin And ReadReg("HomeSave", "True") = "False") Then GoTo ExitSub
+                ' 【改造】改用微软账号登录：只有保存过 refresh token 才做静默自动登录。
+                ' 交互式登录（设备码流程）需要用户去网页输入代码，不能在启动时自动弹出，
+                ' 所以它由 MSALoginInteractiveFlow 单独负责。
+                Dim MSARefreshRaw As String = ReadReg("MSARefreshToken", "")
+                Dim MSARefresh As String = If(MSARefreshRaw = "", "", SerRemove(MSARefreshRaw))
+                If MSARefresh = "" Then GoTo ExitSub
+                If IsAutoLogin And ReadReg("HomeSave", "True") = "False" Then GoTo ExitSub
+
+                ' 先清掉旧令牌，避免静默刷新失败时残留一个过期的 accessToken 被拿去启动游戏
+                WriteReg("AccessToken", "")
 
                 frmHomeRight.StartButtonIsLogining = True
 
-                '尝试登录
-                If ReadReg("ClientToken") = "" Then
-                    PoolLoginRun(New LoginInfo With {.IsRefresh = False, .Email = ReadReg("Email"), .Password = SerRemove(ReadReg("Password"))}, True)
+                Dim MSAResult As ModAuth.MSALoginResult = ModAuth.MSALoginByRefresh(MSARefresh)
+                If MSAResult.Success Then
+                    SaveMSALoginResult(MSAResult)
+                    log("[Login] 静默刷新登录成功：" & MSAResult.PlayerName)
                 Else
-                    If Not PoolLoginRun(New LoginInfo With {.IsRefresh = True, .AccessToken = SerRemove(ReadReg("AccessToken")), .ClientToken = SerRemove(ReadReg("ClientToken"))}, False) Then
-                        PoolLoginRun(New LoginInfo With {.IsRefresh = False, .Email = ReadReg("Email"), .Password = SerRemove(ReadReg("Password"))}, True)
-                    End If
+                    log("[Login] 静默刷新失败：" & MSAResult.ErrorMessage)
+                    ' refresh token 失效（改密码、撤销授权、长期未使用），清掉凭据等用户重新交互登录
+                    WriteReg("MSARefreshToken", "")
+                    LoginResult = ""
                 End If
 
 ExitSub:
@@ -949,6 +1207,13 @@ ExitSub:
     ''' <remarks></remarks>
     Public Sub PoolUpdate()
         If MODE_OFFLINE Then NeedUpdate = LoadState.Failed : Exit Sub
+
+        ' 【改造】PCL1 的自动更新服务器（TX_SREVER_1，腾讯云 COS 存储桶）已停止响应（HTTP 405）。
+        ' 每次启动检查更新都会稳定产生两条错误日志（「检查更新失败」+「无法连接至 PCL 服务器」），
+        ' 而 PCL1 早已停止维护、作者也已转向 PCL2，这个检查不再有任何意义，直接跳过。
+        ' NeedUpdate 置为 Failed 与原来检查失败时的行为完全一致，不影响界面表现。
+        NeedUpdate = LoadState.Failed
+        Exit Sub
 
         '更新
 
@@ -1461,14 +1726,21 @@ LoadEnd:
         If MODE_OFFLINE Then frmStart.IsPushLoading = False : Exit Sub
 
         '加载特殊处理的第三方推荐
-        If ReadIni("setup", "HomeMCBBSPush", "True") = "True" Then Dim th As New Thread(AddressOf PoolMainMCBBS) : th.Priority = ThreadPriority.BelowNormal : th.Start() : PoolPushCount = PoolPushCount + 1
-        If ReadIni("setup", "HomeTbPush", "True") = "True" Then Dim th As New Thread(AddressOf PoolMainTb) : th.Priority = ThreadPriority.BelowNormal : th.Start() : PoolPushCount = PoolPushCount + 1
-        If ReadIni("setup", "HomeMojangPush", "True") = "True" Then Dim th As New Thread(AddressOf PoolMainMojang) : th.Priority = ThreadPriority.BelowNormal : th.Start() : PoolPushCount = PoolPushCount + 1
+        ' 【改造】以下推荐源的默认值统一从 True 改为 False，原因是它们依赖的服务都已停止：
+        '   HomeMCBBSPush —— 依赖 www.mcbbs.net，站点已关闭（域名 DNS 无响应）
+        '   HomeMojangPush —— 同样抓取 MCBBS 的 portal.php 页面
+        '   HomeTbPush     —— 抓取百度贴吧页面后正则解析，页面结构早已变化，成功率极低
+        ' 这些线程会参与 PoolPushCount 计数，只要有一个卡在网络超时上，
+        ' 启动画面就会一直停在「正在加载」不消失。需要时可在设置里手动开启。
+        If ReadIni("setup", "HomeMCBBSPush", "False") = "True" Then Dim th As New Thread(AddressOf PoolMainMCBBS) : th.Priority = ThreadPriority.BelowNormal : th.Start() : PoolPushCount = PoolPushCount + 1
+        If ReadIni("setup", "HomeTbPush", "False") = "True" Then Dim th As New Thread(AddressOf PoolMainTb) : th.Priority = ThreadPriority.BelowNormal : th.Start() : PoolPushCount = PoolPushCount + 1
+        If ReadIni("setup", "HomeMojangPush", "False") = "True" Then Dim th As New Thread(AddressOf PoolMainMojang) : th.Priority = ThreadPriority.BelowNormal : th.Start() : PoolPushCount = PoolPushCount + 1
         If ReadIni("setup", "HomeForumPush", "False") = "True" Then Dim th As New Thread(AddressOf PoolMainForum) : th.Priority = ThreadPriority.BelowNormal : th.Start() : PoolPushCount = PoolPushCount + 1
 
         '加载默认推荐
         Dim AllLocals As New ArrayList
-        If ReadIni("setup", "HomePCLPush", "True") = "True" Then AllLocals.Add(New PushSource With {.Name = "PCL 推荐", .URL = TX_SREVER_1 & "push.ini", .IsEnabled = True, .Introduce = "PCL 官方的优质内容推荐（不含广告请放心食用）。"})
+        ' 【改造】PCL 推荐源托管在 TX_SREVER_1（腾讯云 COS 存储桶），该服务已停止响应（HTTP 405），默认关闭
+        If ReadIni("setup", "HomePCLPush", "False") = "True" Then AllLocals.Add(New PushSource With {.Name = "PCL 推荐", .URL = TX_SREVER_1 & "push.ini", .IsEnabled = True, .Introduce = "PCL 官方的优质内容推荐（不含广告请放心食用）。"})
 
         '加载每个推荐
         Dim Count As Integer = 0
@@ -2881,13 +3153,25 @@ Recheck:
 
             '处理皮肤地址
             StringConv = StringConv.Replace(" ", "")
-            StringConv = Mid(StringConv, StringConv.IndexOf("textures"",""value"":""") + 1).Replace("textures"",""value"":""", "")
-            StringConv = Mid(StringConv, 1, StringConv.IndexOf("""")).Replace(" ", "")
+            ' 【修复】原写法没有检查 IndexOf 的返回值：找不到关键字时 IndexOf 返回 -1，
+            ' 于是变成 Mid(s, 0) 或 Mid(s, 1, -1)，直接抛「参数"Start"必须大于 0」。
+            ' 对离线或无效 UUID，Mojang 返回的内容不是预期格式，很容易走到这里。
+            Dim TexturesIndex As Integer = StringConv.IndexOf("textures"",""value"":""")
+            If TexturesIndex < 0 Then Return GetSkinTypeFromUUID(UUID)
+            StringConv = Mid(StringConv, TexturesIndex + 1).Replace("textures"",""value"":""", "")
+
+            Dim EndQuote As Integer = StringConv.IndexOf("""")
+            If EndQuote < 0 Then Return GetSkinTypeFromUUID(UUID)
+            StringConv = Mid(StringConv, 1, EndQuote).Replace(" ", "")
+
             StringConv = System.Text.Encoding.GetEncoding("utf-8").GetString(Convert.FromBase64String(StringConv))
             StringConv = StringConv.Replace(" ", "")
             If Not StringConv.Contains("""url"":""") Then Return GetSkinTypeFromUUID(UUID)
             StringConv = Mid(StringConv, StringConv.IndexOf("""url"":""") + 1).Replace("""url"":""", "")
-            StringConv = Mid(StringConv, 1, StringConv.IndexOf("""")).Replace(" ", "")
+
+            Dim SkinEndQuote As Integer = StringConv.IndexOf("""")
+            If SkinEndQuote < 0 Then Return GetSkinTypeFromUUID(UUID)
+            StringConv = Mid(StringConv, 1, SkinEndQuote).Replace(" ", "")
 
             '下载皮肤
 

@@ -3,7 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:my="clr-namespace:pcl"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="formGuild"
-    Title="frmGuild" FontFamily="Microsoft YaHei" Width="748" Height="406">
+    Title="frmGuild" FontFamily="Microsoft YaHei, SimHei, SimSun" Width="748" Height="406">
     <Grid x:Name="panMain" Height="375" Width="740" Background="White">
 
         <Grid x:Name="panLoad" HorizontalAlignment="Left" Height="375" VerticalAlignment="Top" Width="740" RenderTransformOrigin="0.5,0.5" d:IsHidden="True">

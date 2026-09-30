@@ -361,3 +361,11 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# XPTLSProbe 的编译产物与运行输出（build.bat 会重新生成）
+tools/XPTLSProbe/*.exe
+tools/XPTLSProbe/*.pdb
+tools/XPTLSProbe/*.log
+tools/XPTLSProbe/*.reg
+tools/XPTLSProbe/out.txt
+tools/XPTLSProbe/err.txt
+tools/XPTLSProbe/calm1.ogg

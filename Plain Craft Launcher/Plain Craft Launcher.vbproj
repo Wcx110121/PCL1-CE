@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -7,7 +7,7 @@
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{F184B08F-C81C-45F6-A57F-5ABD9991F28F}</ProjectTypeGuids>
     <OutputType>WinExe</OutputType>
     <RootNamespace>pcl</RootNamespace>
-    <AssemblyName>pcl</AssemblyName>
+    <AssemblyName>pcl1ce</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <MyType>Custom</MyType>
@@ -95,6 +95,11 @@
     <ManifestKeyFile>LTens.pfx</ManifestKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="BouncyCastle.Crypto">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Resources\BouncyCastle.Crypto.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="Ionic.Zip, Version=1.9.1.8, Culture=neutral, PublicKeyToken=edbe51ad942a3f5c, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Interop\Ionic.Zip.dll</HintPath>
@@ -245,6 +250,8 @@
     <Compile Include="Pages\formSetup.xaml.vb">
       <DependentUpon>formSetup.xaml</DependentUpon>
     </Compile>
+    <Compile Include="ModAuth.vb" />
+    <Compile Include="ModTls.vb" />
     <Compile Include="modMain.vb" />
     <Compile Include="PopupPage\msgVersion.xaml.vb">
       <DependentUpon>msgVersion.xaml</DependentUpon>
@@ -563,6 +570,7 @@
     <Resource Include="Images\Stats-Retry.png" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\BouncyCastle.Crypto.dll" />
     <None Include="Resources\Ionic.Zip.dll" />
   </ItemGroup>
   <ItemGroup>

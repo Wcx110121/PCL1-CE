@@ -3,7 +3,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:my="clr-namespace:pcl"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="formDownloadLeft"
-    Title="frmHomeDownload" FontFamily="Microsoft YaHei">
+    Title="frmHomeDownload" FontFamily="Microsoft YaHei, SimHei, SimSun">
     <Grid x:Name="panMain" Height="323" VerticalAlignment="Top" Width="731">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -35,8 +35,8 @@
                     <ColumnDefinition Width="160*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <my:ListItem x:Name="item1" SubText="最新正式版" ButtonLogo="/pcl;component/Images/appbar.inbox.in.png" Logo="/pcl;component/Images/Block-Grass.png" CanCheck="False" UseLayoutRounding="True" Margin="0,0,0,9" />
-                <my:ListItem x:Name="item2" Width="200" SubText="最新测试版" ButtonLogo="/pcl;component/Images/appbar.inbox.in.png" Logo="/pcl;component/Images/Block-CommandBlock.png" CanCheck="False" Grid.Column="1" UseLayoutRounding="True" Margin="9,0,0,9" />
+                <my:ListItem x:Name="item1" SubText="最新正式版" ButtonLogo="/pcl1ce;component/Images/appbar.inbox.in.png" Logo="/pcl1ce;component/Images/Block-Grass.png" CanCheck="False" UseLayoutRounding="True" Margin="0,0,0,9" />
+                <my:ListItem x:Name="item2" Width="200" SubText="最新测试版" ButtonLogo="/pcl1ce;component/Images/appbar.inbox.in.png" Logo="/pcl1ce;component/Images/Block-CommandBlock.png" CanCheck="False" Grid.Column="1" UseLayoutRounding="True" Margin="9,0,0,9" />
             </Grid>
             <Grid HorizontalAlignment="Left" x:Name="panForgeHost" Margin="0,9,0,0" Width="120" Grid.RowSpan="2" Background="#01FFFFFF" Height="305" VerticalAlignment="Top" Visibility="Collapsed">
                 <StackPanel x:Name="panForge" VerticalAlignment="Top"/>

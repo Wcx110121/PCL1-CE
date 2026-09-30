@@ -2,7 +2,7 @@
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:my="clr-namespace:pcl"
-    Title="frmDownload" mc:Ignorable="d" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" d:DesignWidth="248" SizeToContent="WidthAndHeight" FontFamily="Microsoft YaHei">
+    Title="frmDownload" mc:Ignorable="d" xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" d:DesignWidth="248" SizeToContent="WidthAndHeight" FontFamily="Microsoft YaHei, SimHei, SimSun">
     <Grid Name="panMain" Grid.Column="1" Grid.Row="1" VerticalAlignment="Top" Height="323" Width="0" HorizontalAlignment="Center" Opacity="0">
         <Label Content="没有下载任务" Name="labNull" HorizontalAlignment="Center" VerticalAlignment="Top" IsHitTestVisible="False" Margin="0,146,3,0" FontSize="19" Foreground="{DynamicResource Color3}" Opacity="0" />
         <Grid Margin="5,9,0,0" Name="panBack" Background="#01FFFFFF" Height="305" VerticalAlignment="Top" HorizontalAlignment="Left" Width="203">
@@ -19,12 +19,12 @@
                                 <ColumnDefinition Width="116*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <Image Height="14" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" Width="14" Source="/pcl;component/Images/Stats-Finish.png" />
+                            <Image Height="14" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" Width="14" Source="/pcl1ce;component/Images/Stats-Finish.png" />
                             <Label Margin="23,0,0,0" Padding="0,0,3,0" VerticalContentAlignment="Center" Foreground="#FF4B4B4B" FontSize="12" Content="ffffffffffffffffffffffffffffffffffffffffffffff" />
                             <Label Content="下载成功" FontSize="12" Foreground="#FF4B4B4B" HorizontalAlignment="Right" Padding="0" VerticalContentAlignment="Center" Margin="0,0,3,0" Opacity="0.6" MaxWidth="50" Grid.Column="1" />
                         </Grid>
                         <Grid Height="22">
-                            <Image Height="14" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" Width="14" Source="/pcl;component/Images/Stats-Running.png" />
+                            <Image Height="14" HorizontalAlignment="Left" Margin="4,4,0,0" VerticalAlignment="Top" Width="14" Source="/pcl1ce;component/Images/Stats-Running.png" />
                             <Label Content="15w32a.jar" HorizontalAlignment="Left" Margin="23,0,0,0" Padding="0" VerticalContentAlignment="Center" Foreground="#FF4B4B4B" FontSize="12" MaxWidth="110" />
                             <Label Content="52%" FontSize="12" Foreground="#FF4B4B4B" HorizontalAlignment="Right" Padding="0" VerticalContentAlignment="Center" Margin="0,0,3,0" Opacity="0.6" MaxWidth="50" />
                         </Grid>

@@ -1,4 +1,4 @@
-﻿Public Class ListItem
+Public Class ListItem
 
     Public Event Click(ByVal sender As Object, ByVal e As System.Windows.Input.MouseButtonEventArgs) '单击事件
     Public Event Change(ByVal sender As Object, ByVal e As EventArgs) '选择改变事件
@@ -197,6 +197,21 @@
     Private Sub ListItem_SizeChanged(ByVal sender As Object, ByVal e As System.Windows.SizeChangedEventArgs) Handles Me.SizeChanged
         panBack.Width = Me.Width + 0.51 '防止按钮莫名显示越界
         SetLeft(border, Me.ActualWidth - 40)
+    End Sub
+
+    ''' <summary>
+    ''' 【修复】按钮位置校正。
+    '''
+    ''' SizeChanged 有可能在 ActualWidth 还停留在测量初值时就触发 —— 那个初值约等于
+    ''' 图标列宽(40) + 按钮宽(46)，于是 SetLeft(border, ActualWidth - 40) 会把按钮摆到
+    ''' 左侧、看起来叠在图标右边。而只有被鼠标进入过的行，才会在 MouseLeave 的动画里
+    ''' 被带回右端，所以现象是「只有选中/碰过的那一行位置正常」。
+    ''' 布局完成后再校正一次，保证没交互过的行也在正确位置。
+    ''' </summary>
+    Private Sub ListItem_Loaded(ByVal sender As Object, ByVal e As System.Windows.RoutedEventArgs) Handles Me.Loaded
+        If Me.ActualWidth > 0 Then
+            SetLeft(border, Me.ActualWidth - 40)
+        End If
     End Sub
     Private Sub ListItem_MouseEnter(ByVal sender As Object, ByVal e As System.Windows.Input.MouseEventArgs) Handles Me.MouseEnter
         If ShowButton Then

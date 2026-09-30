@@ -1,4 +1,4 @@
-﻿Public Class formSetup
+Public Class formSetup
 
     ''' <summary>
     ''' 是否可以写入设置。
@@ -110,11 +110,13 @@
             chHomeHide.Checked = ReadIni("setup", "HomeHide", "True")
             chHomeFull.Checked = ReadIni("setup", "HomeFull", "True")
             CType(FindName("raHomeAutoplaySpeed" & ReadIni("setup", "raHomeAutoplaySpeed", "1")), Radiobox).Checked = True
-            chHomePCLPush.Checked = ReadIni("setup", "HomePCLPush", "True")
-            chHomeMCBBSPush.Checked = ReadIni("setup", "HomeMCBBSPush", "True")
-            chHomeTbPush.Checked = ReadIni("setup", "HomeTbPush", "True")
+            ' 【改造】默认值与 PoolPush 保持一致：依赖已停服站点的推荐源默认关闭
+            ' （MCBBS 已关站、贴吧页面结构变化、PCL 推荐源服务器已停止响应）
+            chHomePCLPush.Checked = ReadIni("setup", "HomePCLPush", "False")
+            chHomeMCBBSPush.Checked = ReadIni("setup", "HomeMCBBSPush", "False")
+            chHomeTbPush.Checked = ReadIni("setup", "HomeTbPush", "False")
             chHomeForumPush.Checked = ReadIni("setup", "HomeForumPush", "False")
-            chHomeMojangPush.Checked = ReadIni("setup", "HomeMojangPush", "True")
+            chHomeMojangPush.Checked = ReadIni("setup", "HomeMojangPush", "False")
             For i As Integer = 0 To 100
                 Dim SourceString As String = ReadIni("setup", "HomeSource" & i)
                 If SourceString = "" Then Exit For

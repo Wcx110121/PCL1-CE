@@ -1,4 +1,4 @@
-﻿Imports System.Reflection
+Imports System.Reflection
 
 Class Application
 
@@ -22,6 +22,16 @@ Class Application
             MODE_DEVELOPER = File.Exists(PATH & "Plain Craft Launcher Developer Tag")
             '配置初始化
             Net.ServicePointManager.DefaultConnectionLimit = 1024
+            '启用现代 TLS：微软登录、Xbox Live、Minecraft 服务与 Mojang API 均要求 TLS 1.2，
+            '而 .NET 4.0 默认只用 TLS 1.0，不设置的话在 Windows XP 与新版系统上都会连接失败
+            Try
+                ModAuth.EnableModernTLS()
+                'XP 证书兼容模式：Windows XP 的受信任根证书列表自 2014 年起停止更新，
+                '无法验证 DigiCert Global Root G2 等现代根证书，默认开启，可在设置中关闭
+                If ReadReg("AuthCertCompat", "True") = "True" Then ModAuth.EnableCertificateCompat()
+            Catch ex As Exception
+                log("[Application] 初始化 TLS 失败：" & ex.Message)
+            End Try
         Catch ex As Exception
             If MsgBox("程序初始化时出现异常：" & GetStringFromException(ex, True) & vbCrLf & "是否愿意打开反馈页面来反馈这个问题？" & vbCrLf & "这会帮助作者解决问题，否则它将永远不会得到解决！", MsgBoxStyle.Critical + MsgBoxStyle.YesNo, "炸了") = MsgBoxResult.Yes Then Feedback()
         End Try

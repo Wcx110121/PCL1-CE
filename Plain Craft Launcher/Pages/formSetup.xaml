@@ -4,7 +4,7 @@
     xmlns:my="clr-namespace:pcl"
     xmlns:Themes="clr-namespace:Microsoft.Windows.Themes;assembly=PresentationFramework.Aero"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="formSetup"
-    Title="formSystemSetup" FontFamily="Microsoft YaHei" d:DesignHeight="374">
+    Title="formSystemSetup" FontFamily="Microsoft YaHei, SimHei, SimSun" d:DesignHeight="374">
     <Window.Resources>
         <Style TargetType="{x:Type Label}" x:Key="SubTitle">
             <Setter Property="FontSize" Value="15"/>
@@ -367,7 +367,7 @@
                 
                     <Label Content="第三方推荐源" Style="{StaticResource SubTitle}" Padding="40,10,5,0" ToolTip="点击推荐源左边的图标可以切换启用与禁用状态。" Visibility="Collapsed"/>
                         <StackPanel Width="500" x:Name="panHomeSourceList" Margin="55,5,0,0" UseLayoutRounding="True" HorizontalAlignment="Left" Visibility="Collapsed">
-                            <my:ListItem Height="40"   Logo="/pcl;component/Images/Block-Add.png" SubText="" MainText="添加……" ShowButton="False" CanCheck="False" x:Name="itemHomeSourceAdd" ToolTip="添加一个新的第三方推荐源。"/>
+                            <my:ListItem Height="40"   Logo="/pcl1ce;component/Images/Block-Add.png" SubText="" MainText="添加……" ShowButton="False" CanCheck="False" x:Name="itemHomeSourceAdd" ToolTip="添加一个新的第三方推荐源。"/>
                         </StackPanel>
                 
                 <Label x:Name="labHomeVersion" Content="版本列表 *" Style="{StaticResource SubTitle}" />
@@ -414,7 +414,7 @@
 
                 <StackPanel Orientation="Horizontal" Width="600" HorizontalAlignment="Left" Margin="0,5,0,0">
                     <Grid Height="110" Width="110" VerticalAlignment="Top">
-                        <Image Source="/pcl;component/Images/icon.ico" Width="96" Height="96" x:Name="imgAboutLogo" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="6,6,0,0"/>
+                        <Image Source="/pcl1ce;component/Images/icon.ico" Width="96" Height="96" x:Name="imgAboutLogo" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="6,6,0,0"/>
                     </Grid>
                     <Grid Width="490">
                         <Grid.ColumnDefinitions>

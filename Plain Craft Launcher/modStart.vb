@@ -1,4 +1,4 @@
-﻿Imports Ionic.Zip
+Imports Ionic.Zip
 
 Module modStart
 
@@ -409,7 +409,7 @@ NextFile:
                 If ReadIni("setup", "DownForge", "1") = "0" Then '官方源优先
                     Source.Add(New WebRequireFile With {
                                 .WebURLs = New ArrayList From {
-                                    "http://files.minecraftforge.net/maven" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/").Replace(".jar", "-universal.jar"),
+                                    "https://maven.minecraftforge.net" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/").Replace(".jar", "-universal.jar"),
                                     "http://bmclapi2.bangbang93.com/maven" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/").Replace(".jar", "-universal.jar"),
                                     "http://bmclapi2.bangbang93.com/libraries" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/")
                                 },
@@ -422,7 +422,7 @@ NextFile:
                                 .WebURLs = New ArrayList From {
                                     "http://bmclapi2.bangbang93.com/maven" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/").Replace(".jar", "-universal.jar"),
                                     "http://bmclapi2.bangbang93.com/libraries" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/"),
-                                    "http://files.minecraftforge.net/maven" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/").Replace(".jar", "-universal.jar")
+                                    "https://maven.minecraftforge.net" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/").Replace(".jar", "-universal.jar")
                                 },
                                 .LocalFolder = GetPathFromFullPath(File.LocalPath), .LocalName = GetFileNameFromPath(File.LocalPath),
                                 .KnownFileSize = File.Size
@@ -638,7 +638,8 @@ StartDownload:
         End Try
 FinishJson:
         If AssetsAddress = "" Then
-            AssetsAddress = "http://s3.anazonaws.com/Minecraft.Download/indexes/" & Version.Assets & ".json"
+            ' 【改造】原地址把 amazonaws 拼成了 anazonaws（少一个 m），是从 2017 年就一直存在的笔误
+            AssetsAddress = "https://s3.amazonaws.com/Minecraft.Download/indexes/" & Version.Assets & ".json"
             log("[Launch] 无法获取资源文件索引下载地址，使用旧版本下载地址：" & AssetsAddress)
         Else
             log("[Launch] 资源文件索引下载地址：" & AssetsAddress)
@@ -1133,7 +1134,9 @@ InheritJsonReadFinish:
         GameArguments = New Dictionary(Of String, String)
         Dim UUID As String = GetLegacyUUID(UserName, True)
         Dim AccessToken As String = SerRemove(ReadReg("AccessToken", ""))
-        If Not Len(AccessToken) = 32 Then AccessToken = UUID
+        ' 【改造】原逻辑用「令牌长度是否恰好 32」来判断有没有正版登录，那只对 Yggdrasil 时代的令牌成立。
+        ' 微软登录拿到的是 JWT（长度数百），该条件恒为假，会把正版令牌丢掉换成离线 UUID。
+        If AccessToken = "" Then AccessToken = UUID
         log("[Launch] UUID：" & UUID)
         GameArguments.Add("${version_name}", Version.Name)
         GameArguments.Add("${version_type}", ReadIni("setup", "LaunchShow", APPLICATION_FULL_NAME))

@@ -7,7 +7,7 @@
              d:DesignHeight="300" d:DesignWidth="300" Width="230" Height="120" UseLayoutRounding="True">
     <Border x:Name="panBackAll">
         <Border.Background>
-            <ImageBrush ImageSource="/pcl;component/Images/Infobox-Bg.png" />
+            <ImageBrush ImageSource="/pcl1ce;component/Images/Infobox-Bg.png" />
         </Border.Background>
         <Grid Width="220" Height="110" Name="panBack" Background="{x:Null}">
             <Border BorderThickness="1" Width="222" Height="112" Margin="-1,-1,0,0">

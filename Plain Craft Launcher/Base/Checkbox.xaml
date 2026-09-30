@@ -14,9 +14,9 @@
         <Label Name="label" Grid.Column="1" Padding="0" Margin="8,0,0,0" VerticalContentAlignment="Center" Height="18" VerticalAlignment="Top" BorderBrush="Black" Content="Checkbox" Foreground="{Binding RelativeSource={RelativeSource Self}, Path=Parent.Parent.Foreground}" FontFamily="{Binding RelativeSource={RelativeSource Self}, Path=Parent.Parent.FontFamily}" FontSize="13" />
         <Border BorderBrush="#FF333333" BorderThickness="2" Height="18" HorizontalAlignment="Left" Name="border" VerticalAlignment="Top" Width="18" CornerRadius="1">
             <Grid Height="14" Name="Check" Width="14">
-                <Image Height="14" Name="imgBlack" Source="/pcl;component/Images/Checked-Black.png" Width="14" />
-                <Image Height="14" Name="imgBlue" Source="/pcl;component/Images/Checked-Blue.png" Width="14" Opacity="0" />
-                <Image Height="14"  Name="imgGray" Source="/pcl;component/Images/Checked-Gray.png" Width="14" Opacity="0" />
+                <Image Height="14" Name="imgBlack" Source="/pcl1ce;component/Images/Checked-Black.png" Width="14" />
+                <Image Height="14" Name="imgBlue" Source="/pcl1ce;component/Images/Checked-Blue.png" Width="14" Opacity="0" />
+                <Image Height="14"  Name="imgGray" Source="/pcl1ce;component/Images/Checked-Gray.png" Width="14" Opacity="0" />
             </Grid>
         </Border>
     </Grid>

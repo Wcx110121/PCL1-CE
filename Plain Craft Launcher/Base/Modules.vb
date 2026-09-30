@@ -1,4 +1,4 @@
-﻿Imports System.Drawing.Imaging
+Imports System.Drawing.Imaging
 Imports System.Reflection
 Imports System.Security.Cryptography
 Imports System.Windows.Threading
@@ -1095,6 +1095,67 @@ Public Module Modules
             If Not IsNothing(res) Then res.Close()
             If Not IsNothing(req) Then req.Abort()
         End Try
+    End Function
+
+    ''' <summary>
+    ''' 带兜底的下载：优先用系统 TLS（schannel），失败且属于 TLS / 证书类问题时
+    ''' 改用纯托管 TLS（BouncyCastle）重试，让没装 TLS 1.2 补丁的 XP 也能下载。
+    ''' </summary>
+    Public Sub DownloadWithManagedFallback(ByVal URL As String, ByVal LocalFile As String)
+        ' 已经确定系统 TLS 不可用时直接走托管通道，省掉一次注定失败的尝试
+        If Not ModAuth.UsingManagedTls Then
+            Try
+                My.Computer.Network.DownloadFile(URL, LocalFile, "", "", False, 10000, True)
+                ' 【关键修复】My.Computer.Network.DownloadFile 遇到 301 重定向时【不会跟随】，
+                ' 而是把重定向页面本身（一个 166 字节的 HTML）当成文件写到磁盘上，而且不抛异常。
+                ' 于是上层只会看到「文件大小不匹配」，白白浪费掉这次重试机会 ——
+                ' BMCLAPI 现在把文件请求全部 301 到 https 镜像，所以这一条会直接导致下载全灭。
+                ' 这里检查下载结果，发现是 HTML 错误页就改用托管 TLS 重新下载。
+                If Not LooksLikeHtmlErrorPage(LocalFile) Then Return
+                log("[Download] 系统下载拿到的是重定向页面而不是文件，改用纯托管 TLS：" & URL)
+            Catch ex As Exception
+                If Not IsTlsDownloadFailure(ex) Then Throw
+                log("[Download] 系统 TLS 下载失败，改用纯托管 TLS：" & ex.Message)
+            End Try
+        End If
+        ModTls.DownloadToFile(URL, LocalFile)
+    End Sub
+
+    ''' <summary>
+    ''' 判断刚下载的文件是不是错误 / 重定向页面，而不是真实内容。
+    ''' 判据是「文件很小 + 内容是 HTML」—— 真实资源不会长这样。
+    ''' </summary>
+    Private Function LooksLikeHtmlErrorPage(ByVal Path As String) As Boolean
+        Try
+            Dim fi As New FileInfo(Path)
+            If Not fi.Exists OrElse fi.Length = 0 OrElse fi.Length > 4096 Then Return False
+            Dim buf(511) As Byte
+            Dim n As Integer
+            Using fs As FileStream = File.OpenRead(Path)
+                n = fs.Read(buf, 0, buf.Length)
+            End Using
+            If n <= 0 Then Return False
+            Dim head As String = Encoding.ASCII.GetString(buf, 0, n)
+            Return head.IndexOf("<html", StringComparison.OrdinalIgnoreCase) >= 0 OrElse
+                   head.IndexOf("<!DOCTYPE", StringComparison.OrdinalIgnoreCase) >= 0 OrElse
+                   head.IndexOf("<head>", StringComparison.OrdinalIgnoreCase) >= 0
+        Catch
+            Return False
+        End Try
+    End Function
+
+    ''' <summary>判断下载异常是否属于 TLS / 证书类问题。</summary>
+    Public Function IsTlsDownloadFailure(ByVal ex As Exception) As Boolean
+        Dim m As String = If(ex.Message, "")
+        Dim inner As Exception = ex.InnerException
+        Do While inner IsNot Nothing
+            m &= " " & If(inner.Message, "")
+            inner = inner.InnerException
+        Loop
+        Return m.Contains("SSL") OrElse m.Contains("TLS") OrElse m.Contains("安全通道") OrElse
+               m.Contains("基础连接已经关闭") OrElse m.Contains("远程主机强迫关闭") OrElse
+               m.Contains("TrustFailure") OrElse m.Contains("SecureChannel") OrElse
+               m.Contains("证书") OrElse m.Contains("certificate")
     End Function
 
     ''' <summary>
@@ -2971,7 +3032,8 @@ NextFile:
                                      If Not Directory.Exists(File.LocalFolder) Then Directory.CreateDirectory(File.LocalFolder)
                                      File.SpeedCount = My.Computer.Clock.TickCount
                                      '下载
-                                     My.Computer.Network.DownloadFile(File.WebAddress, File.LocalAddress & DOWNLOADING_END, "", "", False, 10000, True)
+                                     ' 【改造】走带兜底的下载：系统 TLS 不可用时自动改用纯托管 TLS
+                                     DownloadWithManagedFallback(File.WebAddress, File.LocalAddress & DOWNLOADING_END)
                                      '下载完毕检查
                                      File.GetSize = GetFileSize(File.LocalAddress & DOWNLOADING_END)
                                      If File.GetServerFileSize = WebRequireSize.DontNeed Or (File.GetSize = File.TotalSize And File.GetSize > 1) Then

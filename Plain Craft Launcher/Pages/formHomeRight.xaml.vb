@@ -1,4 +1,4 @@
-﻿Public Class formHomeRight
+Public Class formHomeRight
 
     ''' <summary>
     ''' 是否已经初始化过本窗体。
@@ -18,9 +18,10 @@
         FormLoaded = True
         log("[HomeRight] 初始化开始")
 
-        '加载邮箱、密码、用户名、登录方式
-        textLoginEmail.Text = ReadReg("Email")
-        If ReadReg("HomeSave", "True") = "True" Then textLoginPassword.Password = SerRemove(ReadReg("Password"))
+        ' 【改造】登录方式已改为微软账号（设备码流程），不再需要邮箱与密码。
+        ' 原邮箱框改成纯提示文字、密码框隐藏，避免误导用户去填已经无效的凭据。
+        textLoginEmail.IsReadOnly = True
+        textLoginEmail.Text = "点这里登录微软账号"
         textLegacyUsername.Text = ReadReg("LaunchStartUsername")
         If textLegacyUsername.Text = "" Then textLegacyUsername.Text = "游戏名"
         ChangeLoginMethod(If(MODE_OFFLINE, LoginMethods.Legacy, Val(ReadReg("LaunchStartLoginMethod", LoginMethods.Legacy))), False)
@@ -223,34 +224,26 @@
 
 #Region "Login | 未登录页"
 
-    '更改文本的保存
-    Private Sub textEmail_TextChanged(ByVal sender As System.Object, ByVal e As System.Windows.Controls.TextChangedEventArgs) Handles textLoginEmail.TextChanged
-        WriteReg("Email", textLoginEmail.Text)
-    End Sub
-    Private Sub textPassword_PasswordChanged(ByVal sender As System.Object, ByVal e As System.Windows.RoutedEventArgs) Handles textLoginPassword.PasswordChanged
-        textLoginSee.Text = textLoginPassword.Password
-        WriteReg("Password", SerAdd(textLoginPassword.Password))
-    End Sub
-
-    '点击查看密码
-    Private Sub btnLoginSeePassword_MouseLeftButtonDown(ByVal sender As Object, ByVal e As System.Windows.Input.MouseButtonEventArgs) Handles btnLoginSeePassword.MouseLeftButtonDown
-        AniStart({
-                 AaOpacity(textLoginPassword, -textLoginPassword.Opacity, 100),
-                 AaOpacity(textLoginSee, 1 - textLoginSee.Opacity, 100)
-             }, "HomeRightLoginSeePassword")
-    End Sub
-    Private Sub btnLoginSeePassword_Leave(ByVal sender As Object, ByVal e As EventArgs) Handles btnLoginSeePassword.MouseLeftButtonUp, btnLoginSeePassword.MouseLeave
-        AniStart({
-                 AaOpacity(textLoginPassword, 1 - textLoginPassword.Opacity, 100),
-                 AaOpacity(textLoginSee, -textLoginSee.Opacity, 100)
-             }, "HomeRightLoginSeePassword")
+    ''' <summary>
+    ''' 【改造】点击登录面板就直接开始微软账号登录，等价于点「启动」按钮。
+    ''' 原来的面板是邮箱 + 密码输入框，现在只剩提示文字，做成可点击区域更好理解。
+    ''' </summary>
+    Private Sub panLogin_MouseLeftButtonUp(ByVal sender As Object, ByVal e As System.Windows.Input.MouseButtonEventArgs) Handles panLogin.MouseLeftButtonUp
+        ' 只要处于「正版标签 + 未登录」就允许点，不再依赖按钮当前处于哪个状态
+        If LoginMethod <> LoginMethods.Mojang Then Exit Sub
+        If LoginResult <> "" Then Exit Sub
+        If StartButtonIsLogining Then Exit Sub
+        If MODE_OFFLINE Then
+            ShowHint(New HintConverter("没有网络连接，无法登录", HintState.Warn))
+            Exit Sub
+        End If
+        Pool.Add(New Thread(Sub() MSALoginInteractiveFlow()))
     End Sub
 
-    'Tab
-    Private Sub textLoginEmail_KeyDown(ByVal sender As Object, ByVal e As System.Windows.Input.KeyEventArgs) Handles textLoginEmail.KeyDown
-        '在输入法里按下回车输入英文时也会触发KeyUp事件，所以采用KeyDown
-        If e.Key = Input.Key.Tab Then textLoginPassword.Focus() '按下Tab时切换到密码框
-    End Sub
+    ' 【改造】原邮箱/密码输入的保存逻辑已废弃（改为微软账号登录），
+    ' 这里不再向注册表写入任何凭据。
+
+    ' 【改造】原「查看密码」「Tab 切到密码框」的交互随密码框一起去掉了。
 
 #End Region
 
@@ -285,10 +278,10 @@
     Public Sub Logout()
         log("[HomeRight] 退出正版登录")
         LoginResult = ""
-        textLoginEmail.Text = ""
-        textLoginPassword.Password = ""
+        textLoginEmail.Text = "点这里登录微软账号"
         WriteReg("AccessToken", "")
         WriteReg("ClientToken", "")
+        WriteReg("MSARefreshToken", "")
         WriteReg("MojangPlayerUUID", "")
         WriteReg("MojangPlayerName", "")
         IsMojangHeadLoaded = False
@@ -702,12 +695,15 @@ Finish:
             NewValue = StartButtonState.Launching
         ElseIf StartButtonIsLoading Then
             NewValue = StartButtonState.Loading
-        ElseIf SelectVersion.Name = "" Then
-            NewValue = StartButtonState.NoVersion
         ElseIf StartButtonIsLogining And LoginMethod = LoginMethods.Mojang Then
             NewValue = StartButtonState.Logining
         ElseIf LoginResult = "" And LoginMethod = LoginMethods.Mojang Then
+            ' 【改造】登录判断必须排在「没有版本」之前。
+            ' 原来「没有版本」的优先级更高，导致版本列表为空时按钮显示成「下载游戏」，
+            ' 微软登录的入口完全不可达（在真实 XP 上踩到了这个问题）。
             NewValue = StartButtonState.Login
+        ElseIf SelectVersion.Name = "" Then
+            NewValue = StartButtonState.NoVersion
         Else
             NewValue = StartButtonState.Normal
         End If
@@ -931,12 +927,9 @@ Finish:
                 If MODE_OFFLINE Then
                     ShowHint(New HintConverter("没有网络连接，无法登录", HintState.Warn))
                 Else
-                    WriteReg("AccessToken", "")
-                    WriteReg("ClientToken", "")
-                    If textLoginEmail.Text = "" Then ShowHint(New HintConverter("请输入邮箱后再登录！", HintState.Warn)) : Exit Sub
-                    If RegexSearch(textLoginEmail.Text, "([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+").Count = 0 Then ShowHint(New HintConverter("请检查你的邮箱格式是否正确！", HintState.Warn)) : Exit Sub
-                    If textLoginPassword.Password = "" Then ShowHint(New HintConverter("请输入密码后再登录！", HintState.Warn)) : Exit Sub
-                    Pool.Add(New Thread(Sub() PoolLogin(False)))
+                    ' 【改造】改为微软账号设备码登录，不再需要邮箱与密码。
+                    ' 登录流程放在后台线程里跑，中途会弹窗让用户去 microsoft.com/link 输入代码。
+                    Pool.Add(New Thread(Sub() MSALoginInteractiveFlow()))
                 End If
         End Select
     End Sub

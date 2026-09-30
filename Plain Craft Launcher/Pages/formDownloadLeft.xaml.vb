@@ -1,4 +1,4 @@
-﻿Imports Ionic.Zip
+Imports Ionic.Zip
 
 Public Class formDownloadLeft
 
@@ -931,13 +931,13 @@ Finish:
                                                      .WebURLs = New ArrayList From {
                                                          "http://bmclapi2.bangbang93.com/forge/download/" & ver.build,
                                                          "http://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-installer.jar",
-                                                         "http://files.minecraftforge.net/maven/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-installer.jar",
+                                                         "https://maven.minecraftforge.net/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-installer.jar",
                                                          "http://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-universal.zip",
-                                                         "http://files.minecraftforge.net/maven/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-universal.zip",
+                                                         "https://maven.minecraftforge.net/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-universal.zip",
                                                          "http://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-universal.jar",
-                                                         "http://files.minecraftforge.net/maven/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-universal.jar",
+                                                         "https://maven.minecraftforge.net/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-universal.jar",
                                                          "http://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-client.zip",
-                                                         "http://files.minecraftforge.net/maven/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-client.zip"},
+                                                         "https://maven.minecraftforge.net/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-client.zip"},
                                                      .LocalFolder = PATH_DOWNLOAD, .KnownFileSize = 1024 * 16
                                               }}, "Forge " & ver.version, AddressOf ForgeDownloadSuccess, AddressOf ForgeDownloadFail, WebRequireSize.AtLeast)
                                  Catch ex As Exception
