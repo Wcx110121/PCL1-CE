@@ -1,4 +1,4 @@
-﻿Public Class MetroMsgbox
+Public Class MetroMsgbox
 
     Private MyConverter As MyMsgboxConverter
 
@@ -26,6 +26,15 @@
             panMain.UpdateLayout()
             '配色初始化
             If btn2.IsVisible And Not btn1.ColorType = Button.State.RED Then btn1.ColorType = Button.State.HIGHLIGHT
+            ' 【修复】先把按钮宽度取整到整数像素，再开始动画。
+            ' panBtn 启用了 UseLayoutRounding，它自身的宽度会被取整到整像素，而按钮宽度由
+            ' 文本内容决定、通常是小数（实测「并不是」按钮为 58.667）；两者相差的不足
+            ' 1 像素会让最后一个按钮的右边框正好被裁掉约一半，看起来明显比其余三边细。
+            Dim BtnHeight As Double = Math.Ceiling(btn1.ActualHeight)
+            btn1.Width = Math.Ceiling(btn1.ActualWidth)
+            btn2.Width = Math.Ceiling(btn2.ActualWidth)
+            btn3.Width = Math.Ceiling(btn3.ActualWidth)
+            panMain.UpdateLayout()
             '延时执行的动画
             Me.Name = "frm" & GetUUID()
             AniStart({
@@ -37,12 +46,12 @@
                 AaWidth(labTitle, labTitle.ActualWidth, 250, 200, New AniEaseEnd),
                 AaOpacity(labTitle, 1, 200, 200),
                 AaOpacity(panCaption, 1, 250, 250),
-                AaHeight(btn1, btn1.ActualHeight, 150, 300),
-                AaHeight(btn2, btn2.ActualHeight, 150, 350),
-                AaHeight(btn3, btn3.ActualHeight, 150, 400)
+                AaHeight(btn1, BtnHeight, 150, 300),
+                AaHeight(btn2, BtnHeight, 150, 350),
+                AaHeight(btn3, BtnHeight, 150, 400)
             }, "MsgboxStart" & Me.Name)
             '动画初始化
-            panBtn.Height = panBtn.ActualHeight
+            panBtn.Height = Math.Ceiling(panBtn.ActualHeight)
             btn1.Height = 0
             btn2.Height = 0
             btn3.Height = 0
