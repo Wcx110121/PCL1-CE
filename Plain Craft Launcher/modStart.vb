@@ -410,8 +410,8 @@ NextFile:
                     Source.Add(New WebRequireFile With {
                                 .WebURLs = New ArrayList From {
                                     "https://maven.minecraftforge.net" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/").Replace(".jar", "-universal.jar"),
-                                    "http://bmclapi2.bangbang93.com/maven" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/").Replace(".jar", "-universal.jar"),
-                                    "http://bmclapi2.bangbang93.com/libraries" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/")
+                                    "https://bmclapi2.bangbang93.com/maven" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/").Replace(".jar", "-universal.jar"),
+                                    "https://bmclapi2.bangbang93.com/libraries" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/")
                                 },
                                 .LocalFolder = GetPathFromFullPath(File.LocalPath), .LocalName = GetFileNameFromPath(File.LocalPath),
                                 .KnownFileSize = File.Size
@@ -420,8 +420,8 @@ NextFile:
                     'BMCLAPI 优先
                     Source.Add(New WebRequireFile With {
                                 .WebURLs = New ArrayList From {
-                                    "http://bmclapi2.bangbang93.com/maven" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/").Replace(".jar", "-universal.jar"),
-                                    "http://bmclapi2.bangbang93.com/libraries" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/"),
+                                    "https://bmclapi2.bangbang93.com/maven" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/").Replace(".jar", "-universal.jar"),
+                                    "https://bmclapi2.bangbang93.com/libraries" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/"),
                                     "https://maven.minecraftforge.net" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/").Replace(".jar", "-universal.jar")
                                 },
                                 .LocalFolder = GetPathFromFullPath(File.LocalPath), .LocalName = GetFileNameFromPath(File.LocalPath),
@@ -431,7 +431,7 @@ NextFile:
             ElseIf File.LocalPath.Contains("optifine\OptiFine") Then
                 Source.Add(New WebRequireFile With {
                             .WebURLs = New ArrayList From {
-                                "http://bmclapi2.bangbang93.com/maven/com/optifine/" & File.LocalPath.Replace(PATH_MC & "libraries\optifine\OptiFine\", "").Split("_")(0) & "/" & GetFileNameFromPath(File.LocalPath).Replace("-", "_")
+                                "https://bmclapi2.bangbang93.com/maven/com/optifine/" & File.LocalPath.Replace(PATH_MC & "libraries\optifine\OptiFine\", "").Split("_")(0) & "/" & GetFileNameFromPath(File.LocalPath).Replace("-", "_")
                             },
                             .LocalFolder = GetPathFromFullPath(File.LocalPath), .LocalName = GetFileNameFromPath(File.LocalPath),
                             .KnownFileSize = File.Size
@@ -442,10 +442,10 @@ NextFile:
                     Source.Add(New WebRequireFile With {
                                 .WebURLs = New ArrayList From {
                                     "https://libraries.minecraft.net" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/"),
-                                    "http://bmclapi2.bangbang93.com/libraries" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/"),
+                                    "https://bmclapi2.bangbang93.com/libraries" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/"),
                                     "https://libraries.minecraft.net" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/"),
-                                    "http://bmclapi2.bangbang93.com/libraries" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/"),
-                                    "http://bmclapi2.bangbang93.com/maven" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/")
+                                    "https://bmclapi2.bangbang93.com/libraries" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/"),
+                                    "https://bmclapi2.bangbang93.com/maven" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/")
                                 },
                                 .LocalFolder = GetPathFromFullPath(File.LocalPath), .LocalName = GetFileNameFromPath(File.LocalPath),
                                 .KnownFileSize = File.Size
@@ -454,11 +454,11 @@ NextFile:
                     'BMCLAPI 优先
                     Source.Add(New WebRequireFile With {
                                 .WebURLs = New ArrayList From {
-                                    "http://bmclapi2.bangbang93.com/libraries" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/"),
+                                    "https://bmclapi2.bangbang93.com/libraries" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/"),
                                     "https://libraries.minecraft.net" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/"),
-                                    "http://bmclapi2.bangbang93.com/libraries" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/"),
+                                    "https://bmclapi2.bangbang93.com/libraries" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/"),
                                     "https://libraries.minecraft.net" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/"),
-                                    "http://bmclapi2.bangbang93.com/maven" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/")
+                                    "https://bmclapi2.bangbang93.com/maven" & File.LocalPath.Replace(PATH_MC & "libraries", "").Replace("\", "/")
                                 },
                                 .LocalFolder = GetPathFromFullPath(File.LocalPath), .LocalName = GetFileNameFromPath(File.LocalPath),
                                 .KnownFileSize = File.Size
@@ -479,6 +479,7 @@ NextFile:
                     Dim Percent As Double = WebGroups(VersionName & " 支持库").Percent
                     frmHomeRight.StartButtomSet("下载支持库中 " & Math.Round(Percent * 100, 1) & "%")
                     frmHomeRight.StartProcess = 0.09 + MathRange(Percent, 0, 1) * 0.27
+                    GameDownloadNotify("下载支持库中 " & Math.Round(Percent * 100, 1) & "%", 0.09 + MathRange(Percent, 0, 1) * 0.27)
                 End If
             Catch
             End Try
@@ -650,8 +651,8 @@ FinishJson:
         GameAssetsIndexDownloading = LoadState.Loading
         WebStart({New WebRequireFile With {
                          .WebURLs = New ArrayList From {
-                             "http://bmclapi2.bangbang93.com/indexes/" & Version.Assets & ".json",
-                             AssetsAddress.Replace("https://launchermeta.mojang.com", "http://bmclapi2.bangbang93.com"),
+                             "https://bmclapi2.bangbang93.com/indexes/" & Version.Assets & ".json",
+                             AssetsAddress.Replace("https://launchermeta.mojang.com", "https://bmclapi2.bangbang93.com"),
                              AssetsAddress,
                              "http://s3.anazonaws.com/Minecraft.Download/indexes/" & Version.Assets & ".json"},
                          .LocalFolder = PATH_MC & "assets\indexes\", .LocalName = Version.Assets & ".json",
@@ -663,6 +664,7 @@ FinishJson:
                  RequireSize:=If(AssetsSize = 0, WebRequireSize.Require, WebRequireSize.Known))
         '等待下载结束
         Do While GameAssetsIndexDownloading = LoadState.Loading
+            GameDownloadNotify("下载资源文件索引中", 0.36)
             Thread.Sleep(50)
         Loop
         '如果下载失败则返回
@@ -673,36 +675,41 @@ FinishJson:
         GameAssetsIndexDownloading = LoadState.Loading
         Dim FileList As ArrayList = GameAssetsListGet(Version.Assets)
         Dim KVList As New ArrayList
+        '【改造】下载源顺序只读取一次，不再对每个文件重复读取配置。
+        '另外本段的所有下载地址均已由明文 HTTP 改为 HTTPS：
+        'Mojang 的 resources.download.minecraft.net 对 HTTP 请求直接返回 400，
+        '而 BMCLAPI 的 HTTP 需要经过一次 301 跳转（系统下载并不跟随跳转），两者都会白白拖慢下载。
+        Dim MojangFirst As Boolean = (ReadIni("setup", "DownAssets", "0") = "0")
         For Each AssetFile As GameAssetsFile In FileList
-            If ReadIni("setup", "DownAssets", "0") = "0" Then
+            If MojangFirst Then
                 KVList.Add(New WebRequireFile With {
                            .LocalFolder = GetPathFromFullPath(AssetFile.LocalPath), .LocalName = GetFileNameFromPath(AssetFile.LocalPath),
                            .WebURLs = New ArrayList From {
-                               "http://resources.download.minecraft.net/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
-                               "http://bmclapi2.bangbang93.com/assets/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
-                               "http://resources.download.minecraft.net/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
-                               "http://bmclapi2.bangbang93.com/assets/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
-                               "http://resources.download.minecraft.net/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
-                               "http://bmclapi2.bangbang93.com/assets/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
-                               "http://resources.download.minecraft.net/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
-                               "http://bmclapi2.bangbang93.com/assets/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
-                               "http://resources.download.minecraft.net/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
-                               "http://bmclapi2.bangbang93.com/resources/" & AssetFile.SourcePath},
+                               "https://resources.download.minecraft.net/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
+                               "https://bmclapi2.bangbang93.com/assets/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
+                               "https://resources.download.minecraft.net/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
+                               "https://bmclapi2.bangbang93.com/assets/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
+                               "https://resources.download.minecraft.net/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
+                               "https://bmclapi2.bangbang93.com/assets/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
+                               "https://resources.download.minecraft.net/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
+                               "https://bmclapi2.bangbang93.com/assets/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
+                               "https://resources.download.minecraft.net/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
+                               "https://bmclapi2.bangbang93.com/resources/" & AssetFile.SourcePath},
                             .KnownFileSize = AssetFile.Size
                        })
             Else
                 KVList.Add(New WebRequireFile With {
                            .LocalFolder = GetPathFromFullPath(AssetFile.LocalPath), .LocalName = GetFileNameFromPath(AssetFile.LocalPath),
                            .WebURLs = New ArrayList From {
-                               "http://bmclapi2.bangbang93.com/assets/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
-                               "http://resources.download.minecraft.net/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
-                               "http://bmclapi2.bangbang93.com/assets/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
-                               "http://resources.download.minecraft.net/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
-                               "http://bmclapi2.bangbang93.com/assets/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
-                               "http://resources.download.minecraft.net/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
-                               "http://bmclapi2.bangbang93.com/assets/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
-                               "http://resources.download.minecraft.net/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
-                               "http://bmclapi2.bangbang93.com/resources/" & AssetFile.SourcePath},
+                               "https://bmclapi2.bangbang93.com/assets/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
+                               "https://resources.download.minecraft.net/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
+                               "https://bmclapi2.bangbang93.com/assets/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
+                               "https://resources.download.minecraft.net/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
+                               "https://bmclapi2.bangbang93.com/assets/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
+                               "https://resources.download.minecraft.net/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
+                               "https://bmclapi2.bangbang93.com/assets/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
+                               "https://resources.download.minecraft.net/" & Left(AssetFile.Hash, 2) & "/" & AssetFile.Hash,
+                               "https://bmclapi2.bangbang93.com/resources/" & AssetFile.SourcePath},
                             .KnownFileSize = AssetFile.Size
                        })
             End If
@@ -720,6 +727,7 @@ FinishJson:
                     Dim Percent As Double = WebGroups(Version.Assets & " 资源文件").Percent
                     frmHomeRight.StartButtomSet("下载资源文件中 " & Math.Round(Percent * 100, 1) & "%")
                     frmHomeRight.StartProcess = 0.42 + MathRange(Percent, 0, 1) * 0.3
+                    GameDownloadNotify("下载资源文件中 " & Math.Round(Percent * 100, 1) & "%", 0.42 + MathRange(Percent, 0, 1) * 0.3)
                 End If
             Catch
             End Try
@@ -727,6 +735,85 @@ FinishJson:
         '如果下载失败则返回
         If GameAssetsIndexDownloading = LoadState.Failed Then Throw New Exception("下载资源文件失败！")
 
+    End Sub
+
+#End Region
+
+#Region "一次下载"
+
+    ''' <summary>
+    ''' 【改造】一次下载的进度回调。参数依次为当前步骤的说明与总进度（0 到 1）。
+    ''' 为 Nothing 时（例如正常的游戏启动流程）不会产生任何额外行为。
+    ''' </summary>
+    ''' <remarks></remarks>
+    Public GameDownloadReporter As Action(Of String, Double) = Nothing
+
+    Private GameFullDownloadLock As New Object
+    Private GameFullDownloadRunning As Boolean = False
+
+    ''' <summary>
+    ''' 【改造】向一次下载的调用方汇报进度。回调中的异常会被忽略，以免影响下载本身。
+    ''' </summary>
+    Private Sub GameDownloadNotify(ByVal Text As String, ByVal Process As Double)
+        Dim Reporter As Action(Of String, Double) = GameDownloadReporter
+        If Reporter Is Nothing Then Exit Sub
+        Try
+            Reporter(Text, Process)
+        Catch
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' 【改造】一次性下载指定 Minecraft 版本的全部文件：本体、支持库与资源文件。
+    ''' 该步骤结束后版本即可直接启动，不必再等到启动时补全文件。
+    ''' </summary>
+    ''' <param name="VersionName">版本的文件夹名称。</param>
+    ''' <remarks>下载失败时会抛出异常，由调用方负责提示。同一时间只允许执行一个一次下载。</remarks>
+    Public Sub GameFullDownload(ByVal VersionName As String)
+        SyncLock GameFullDownloadLock
+            If GameFullDownloadRunning Then Throw New Exception("已经有一个版本正在补全文件，请等待它完成后再试。")
+            GameFullDownloadRunning = True
+        End SyncLock
+        Try
+
+            log("[Download] 开始一次下载：" & VersionName)
+
+            '读取版本信息（会补全资源文件号与依赖版本）
+            Dim Ver As New MCVersion(VersionName)
+            Ver.Name = VersionName
+            CheckMCVersion(Ver, True)
+
+            '支持库（其中包含版本本体 Jar）
+            GameDownloadNotify("检查支持库中", 0)
+            Dim FileList As New ArrayList
+            If GameLibCheck(Ver, FileList) Then
+                log("[Download] 支持库已完整，跳过：" & VersionName)
+                GameDownloadNotify("支持库已完整", 0.3)
+            Else
+                log("[Download] 需要补全支持库：" & VersionName)
+                GameLibDownload(VersionName, FileList)
+            End If
+
+            '资源文件
+            If Ver.Assets = "" Then
+                log("[Download] 该版本没有资源文件项，跳过")
+                GameDownloadNotify("无需资源文件", 0.7)
+            ElseIf GameAssetsCheck(Ver.Assets) Then
+                log("[Download] 资源文件已完整，跳过：" & Ver.Assets)
+                GameDownloadNotify("资源文件已完整", 0.7)
+            Else
+                log("[Download] 需要补全资源文件：" & Ver.Assets)
+                GameAssetsDownload(Ver)
+            End If
+
+            GameDownloadNotify("下载完成", 1)
+            log("[Download] 一次下载结束：" & VersionName)
+
+        Finally
+            SyncLock GameFullDownloadLock
+                GameFullDownloadRunning = False
+            End SyncLock
+        End Try
     End Sub
 
 #End Region

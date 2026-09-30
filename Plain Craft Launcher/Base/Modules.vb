@@ -1083,7 +1083,11 @@ Public Module Modules
 
         Try
             req = WebRequest.Create(URL)
-            req.Timeout = 6000
+            ' 【改造】原超时 6 秒对 BMCLAPI 的较大列表响应偏紧
+            ' （例如 78 KB 的 OptiFine 版本列表、58 KB 的 Forge 版本列表），
+            ' 慢速网络下会直接判失败、列表显示为空。放宽到 20 秒。
+            req.Timeout = 20000
+            req.ReadWriteTimeout = 20000
             res = req.GetResponse()
             strm = New StreamReader(res.GetResponseStream(), Encode)
             GetWebsiteCode = strm.ReadToEnd

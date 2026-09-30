@@ -1,4 +1,4 @@
-Imports Ionic.Zip
+﻿Imports Ionic.Zip
 
 Public Class formDownloadLeft
 
@@ -68,6 +68,16 @@ Public Class formDownloadLeft
                 Case "Minecraft"
                     '结束显示
                     MinecraftState = LoadState.Loaded
+                    ' 【修复】列表为空时直接显示失败，避免下方取首项时抛出索引越界并中断整个加载流程
+                    If MinecraftArray.Count = 0 Then
+                        MinecraftState = LoadState.Failed
+                        labLoading.Content = "加载失败"
+                        labLoading.Visibility = Visibility.Visible
+                        panFinish.Visibility = Visibility.Hidden
+                        scrollVersion.Visibility = Visibility.Visible
+                        panVersionHost.Visibility = Visibility.Visible
+                        Exit Sub
+                    End If
                     '加载预览版，预览版总是列表第一个
                     item2.MainText = MinecraftArray(0).id
                     item2.Tag = MinecraftArray(0)
@@ -100,6 +110,16 @@ Public Class formDownloadLeft
                 Case "OptiFine"
                     '结束显示
                     OptiFineState = LoadState.Loaded
+                    ' 【修复】列表为空时直接显示失败，避免下方取首项时抛出索引越界并中断整个加载流程
+                    If OptiFineArray.Count = 0 Then
+                        OptiFineState = LoadState.Failed
+                        labLoading.Content = "加载失败"
+                        labLoading.Visibility = Visibility.Visible
+                        panFinish.Visibility = Visibility.Hidden
+                        scrollVersion.Visibility = Visibility.Visible
+                        panVersionHost.Visibility = Visibility.Visible
+                        Exit Sub
+                    End If
                     '加载预览版，预览版总是列表第一个
                     item2.MainText = OptiFineArray(0).id.ToString
                     item2.Tag = OptiFineArray(0)
@@ -358,11 +378,11 @@ Public Class formDownloadLeft
             If ReadIni("setup", "DownVersion", "0") = "0" Then
                 MinecraftInfo = GetWebsiteCode("https://launchermeta.mojang.com/mc/game/version_manifest.json", Encoding.Default)
                 If MinecraftInfo = "" Then
-                    MinecraftInfo = GetWebsiteCode("http://bmclapi2.bangbang93.com/mc/game/version_manifest.json", Encoding.Default)
+                    MinecraftInfo = GetWebsiteCode("https://bmclapi2.bangbang93.com/mc/game/version_manifest.json", Encoding.Default)
                     If IsShowHint And Not MinecraftInfo = "" Then ShowHint("获取官方 Minecraft 版本列表失败，自动切换为 BMCLAPI")
                 End If
             Else
-                MinecraftInfo = GetWebsiteCode("http://bmclapi2.bangbang93.com/mc/game/version_manifest.json", Encoding.Default)
+                MinecraftInfo = GetWebsiteCode("https://bmclapi2.bangbang93.com/mc/game/version_manifest.json", Encoding.Default)
                 If MinecraftInfo = "" Then
                     MinecraftInfo = GetWebsiteCode("https://launchermeta.mojang.com/mc/game/version_manifest.json", Encoding.Default)
                 End If
@@ -460,14 +480,14 @@ Public Class formDownloadLeft
                                      If ReadIni("setup", "DownMinecraft", "1") = "0" Then
                                          '官方源优先
                                          DownloadList = New ArrayList({
-                                                     Ver.url.Replace("https://launcher.mojang.com", "http://bmclapi2.bangbang93.com").Replace("https://launchermeta.mojang.com", "http://bmclapi2.bangbang93.com"),
+                                                     Ver.url.Replace("https://launcher.mojang.com", "https://bmclapi2.bangbang93.com").Replace("https://launchermeta.mojang.com", "https://bmclapi2.bangbang93.com"),
                                                      Ver.url
                                                  })
                                      Else
                                          'BMCLAPI 优先
                                          DownloadList = New ArrayList({
                                                      Ver.url,
-                                                     Ver.url.Replace("https://launcher.mojang.com", "http://bmclapi2.bangbang93.com").Replace("https://launchermeta.mojang.com", "http://bmclapi2.bangbang93.com")
+                                                     Ver.url.Replace("https://launcher.mojang.com", "https://bmclapi2.bangbang93.com").Replace("https://launchermeta.mojang.com", "https://bmclapi2.bangbang93.com")
                                                  })
                                      End If
                                      WebStart({
@@ -486,14 +506,14 @@ Public Class formDownloadLeft
                                                       If ReadIni("setup", "DownMinecraft", "1") = "0" Then
                                                           'Mojang 优先
                                                           url.Add(json("downloads")("client")("url").ToString)
-                                                          url.Add(json("downloads")("client")("url").ToString.Replace("https://launcher.mojang.com", "http://bmclapi2.bangbang93.com").Replace("https://launchermeta.mojang.com", "http://bmclapi2.bangbang93.com"))
+                                                          url.Add(json("downloads")("client")("url").ToString.Replace("https://launcher.mojang.com", "https://bmclapi2.bangbang93.com").Replace("https://launchermeta.mojang.com", "https://bmclapi2.bangbang93.com"))
                                                           url.Add(json("downloads")("client")("url").ToString)
-                                                          url.Add(json("downloads")("client")("url").ToString.Replace("https://launcher.mojang.com", "http://bmclapi2.bangbang93.com").Replace("https://launchermeta.mojang.com", "http://bmclapi2.bangbang93.com"))
+                                                          url.Add(json("downloads")("client")("url").ToString.Replace("https://launcher.mojang.com", "https://bmclapi2.bangbang93.com").Replace("https://launchermeta.mojang.com", "https://bmclapi2.bangbang93.com"))
                                                       Else
                                                           'BMCLAPI 优先
-                                                          url.Add(json("downloads")("client")("url").ToString.Replace("https://launcher.mojang.com", "http://bmclapi2.bangbang93.com").Replace("https://launchermeta.mojang.com", "http://bmclapi2.bangbang93.com"))
+                                                          url.Add(json("downloads")("client")("url").ToString.Replace("https://launcher.mojang.com", "https://bmclapi2.bangbang93.com").Replace("https://launchermeta.mojang.com", "https://bmclapi2.bangbang93.com"))
                                                           url.Add(json("downloads")("client")("url").ToString)
-                                                          url.Add(json("downloads")("client")("url").ToString.Replace("https://launcher.mojang.com", "http://bmclapi2.bangbang93.com").Replace("https://launchermeta.mojang.com", "http://bmclapi2.bangbang93.com"))
+                                                          url.Add(json("downloads")("client")("url").ToString.Replace("https://launcher.mojang.com", "https://bmclapi2.bangbang93.com").Replace("https://launchermeta.mojang.com", "https://bmclapi2.bangbang93.com"))
                                                           url.Add(json("downloads")("client")("url").ToString)
                                                       End If
                                                       WebStart({New WebRequireFile With {.WebURLs = url, .LocalFolder = local, .LocalName = realID & ".jar", .KnownFileSize = size}}, "Minecraft " & realID, AddressOf MinecraftDownloadSuccess, AddressOf MinecraftDownloadFail, If(size = 1024 * 50, WebRequireSize.AtLeast, WebRequireSize.Known))
@@ -521,9 +541,43 @@ Public Class formDownloadLeft
         th.Start()
     End Sub
     Private Sub MinecraftDownloadSuccess(ByVal Name As String)
+        '【改造】一次下载：版本本体下载完成后紧接着补全支持库与资源文件，让下载页一次就能把版本装到可用状态
+        Dim realID As String = Name
+        If realID.StartsWith("Minecraft ") Then realID = Mid(realID, Len("Minecraft ") + 1)
+        Dim FullDownload As Boolean = (ReadIni("setup", "DownMinecraftFull", "True") = "True")
+        If FullDownload Then
+            Pool.Add(New Thread(Sub()
+                                    Dim LastStage As String = ""
+                                    Try
+                                        GameDownloadReporter = Sub(Text As String, Process As Double)
+                                                                   Dim Stage As String = Text
+                                                                   If Stage.StartsWith("检查支持库") Then
+                                                                       Stage = "检查支持库中"
+                                                                   ElseIf Stage.StartsWith("下载支持库") Then
+                                                                       Stage = "补全支持库中"
+                                                                   ElseIf Stage.StartsWith("下载资源文件") Then
+                                                                       Stage = "补全资源文件中"
+                                                                   Else
+                                                                       Exit Sub
+                                                                   End If
+                                                                   If Stage = LastStage Then Exit Sub
+                                                                   LastStage = Stage
+                                                                   Application.Current.Dispatcher.Invoke(Sub() ShowHint(New HintConverter("Minecraft " & realID & "：" & Stage, HintState.Info)))
+                                                               End Sub
+                                        GameFullDownload(realID)
+                                        Application.Current.Dispatcher.Invoke(Sub() ShowHint(New HintConverter("Minecraft " & realID & " 下载完成，可以直接启动", HintState.Finish)))
+                                    Catch ex As Exception
+                                        ExShow(ex, "Minecraft 补全文件失败：" & realID, ErrorLevel.AllUsers)
+                                        Application.Current.Dispatcher.Invoke(Sub() ShowHint(New HintConverter("Minecraft " & realID & " 补全文件失败：" & GetStringFromException(ex), HintState.Warn)))
+                                    Finally
+                                        GameDownloadReporter = Nothing
+                                        Application.Current.Dispatcher.Invoke(Sub() frmHomeRight.StartProcess = 0)
+                                    End Try
+                                End Sub))
+        End If
         Try
             Pool.Add(New Thread(AddressOf PoolVersionList))
-            ShowHint(New HintConverter(Name & " 下载成功", HintState.Finish))
+            If Not FullDownload Then ShowHint(New HintConverter(Name & " 下载成功", HintState.Finish))
         Catch ex As Exception
             ExShow(ex, "Minecraft 下载结束后的处理异常：" & Name)
             ShowHint(New HintConverter(Name & " 下载失败：" & GetStringFromException(ex) & "！", HintState.Critical))
@@ -593,6 +647,10 @@ Public Class formDownloadLeft
             Dim urls As ArrayList = RegexSearch(OptiFineInfo, "(?<=downloadLineMirror'><a href="")[^""]*")
             Dim times As ArrayList = RegexSearch(OptiFineInfo, "(?<=downloadLineDate'>)[^<]*")
             '长度检查
+            ' 【修复】optifine.net 改版后，旧的正则表达式已经匹配不到任何条目。
+            ' 此时三个数组的长度同为 0，会「成功」通过下方的等长检查，得到一个空列表，
+            ' 表现为列表页一片空白，并在随后取首项时抛出索引越界。这里把空列表也视为失败，改走 BMCLAPI 源。
+            If ids.Count = 0 Then Throw New WebException("未从官方页面中匹配到任何版本")
             If Not (ids.Count = urls.Count And urls.Count = times.Count) Then Throw New WebException("获取到的列表长度不等")
             '添加
             For i = 0 To ids.Count - 1
@@ -615,7 +673,7 @@ BMCLAPI:
         '获取版本列表
         Try
             log("[DownloadLeft] 使用 BMCLAPI 源获取 OptiFine 版本列表开始")
-            OptiFineInfo = GetWebsiteCode("http://bmclapi2.bangbang93.com/optifine/versionList", Encoding.Default)
+            OptiFineInfo = GetWebsiteCode("https://bmclapi2.bangbang93.com/optifine/versionList", Encoding.Default)
             If Len(OptiFineInfo) < 200 Then Throw New WebException("获取到的列表长度不足：" & OptiFineInfo)
         Catch ex As Exception
             ExShow(ex, "使用 BMCLAPI 源获取 OptiFine 版本列表失败")
@@ -630,6 +688,9 @@ BMCLAPI:
             '预处理
             Dim filename As ArrayList = RegexSearch(OptiFineInfo, "(?<=filename"":"")[^""]*")
             Dim id As ArrayList = RegexSearch(OptiFineInfo, "(?<=OptiFine_).*?(?=\.jar)")
+            ' 【修复】同官方源，避免匹配为空或长度不等时得到一个残缺的列表
+            If filename.Count = 0 Then Throw New WebException("未从 BMCLAPI 返回内容中匹配到任何版本")
+            If Not filename.Count = id.Count Then Throw New WebException("获取到的列表长度不等")
             '添加
             For i = 0 To filename.Count - 1
                 OptiFineArray.Add(New OptiFineVersion With {
@@ -656,8 +717,12 @@ Success:
 
     Private Sub OptiFineDownloadStart(ByVal sender As ListItem, ByVal e As System.Windows.Input.MouseButtonEventArgs) Handles item1.ButtonClick, item2.ButtonClick
         If IsNothing(sender.Tag) Or Not selecter.SelectIndexName = "OptiFine" Then Exit Sub
+        ' 【修复】本方法同时挂在 item1 / item2（「最新正式版 / 最新测试版」两个入口）上，
+        ' 而它们的 Tag 是 Minecraft 版本对象、并非 OptiFineVersion，
+        ' 直接 CType 会抛「指定的转换无效」并将整个程序打断（实测点击即弹出异常框）。
+        If Not TypeOf sender.Tag Is OptiFineVersion Then Exit Sub
         '初始化信息
-        Dim ver As OptiFineVersion = sender.Tag
+        Dim ver As OptiFineVersion = CType(sender.Tag, OptiFineVersion)
         If WebGroups.ContainsKey("OptiFine " & ver.id) Then
             ShowHint(New HintConverter("正在下载中，请勿重复操作", HintState.Warn))
             Exit Sub
@@ -668,9 +733,9 @@ Success:
             Dim Version As String = Split(ver.id)(0)
             Dim BMCLAPIAddress As String = ""
             If ver.id.Contains("pre") Then
-                BMCLAPIAddress = "http://bmclapi2.bangbang93.com/maven/com/optifine/" & ver.id.Split(" ")(0) & "/preview_OptiFine_" & ver.id.Replace(" ", "_").Replace("_pre", "") & ".jar"
+                BMCLAPIAddress = "https://bmclapi2.bangbang93.com/maven/com/optifine/" & ver.id.Split(" ")(0) & "/preview_OptiFine_" & ver.id.Replace(" ", "_").Replace("_pre", "") & ".jar"
             Else
-                BMCLAPIAddress = "http://bmclapi2.bangbang93.com/maven/com/optifine/" & ver.id.Split(" ")(0) & "/OptiFine_" & ver.id.Replace(" ", "_") & ".jar"
+                BMCLAPIAddress = "https://bmclapi2.bangbang93.com/maven/com/optifine/" & ver.id.Split(" ")(0) & "/OptiFine_" & ver.id.Replace(" ", "_") & ".jar"
             End If
             '下载
             log("[DownloadLeft] 下载 OptiFine：" & ver.id)
@@ -769,7 +834,7 @@ Success:
         '获取版本列表
         Try
             log("[DownloadLeft] 获取Forge可用版本列表开始")
-            ForgeVersionInfo = GetWebsiteCode("http://bmclapi2.bangbang93.com/forge/minecraft", Encoding.Default)
+            ForgeVersionInfo = GetWebsiteCode("https://bmclapi2.bangbang93.com/forge/minecraft", Encoding.Default)
             If Len(ForgeVersionInfo) < 40 Then Throw New WebException("获取到的列表长度不足：" & ForgeVersionInfo)
         Catch ex As Exception
             ExShow(ex, "获取Forge可用版本列表失败")
@@ -783,7 +848,14 @@ Success:
         Try
             '添加
             'ForgeVersionArray.AddRange(ForgeVersionInfo.Replace("[", "").Replace("]", "").Replace("""", "").Replace("null", "").Replace(",,", "").Split(",")) 'RegexSearch(ForgeVersionInfo, "1.([7-9]{1}.[0-9]+|[0-9]{2}[0-9.]*)(?="")")
-            ForgeVersionArray = RegexSearch(ForgeVersionInfo, "1.([0-9]{1,2}.[0-9]+|[0-9]{1,2}[0-9.]*)(?="")")
+            ' 【改造】改用 JSON 解析。
+            ' 原实现用正则在整个 JSON 文本上抓形如 1.x 的片段，会把别处的数字一并抓进来：
+            ' 实测 78 个可用版本被解析成 74 个，且 1.1 重复出现两次（列表底部因此出现两个 1.1），
+            ' 末尾顺序也是乱的。改用 JSON 解析后可得到准确的版本列表。
+            Dim McJson As JArray = JArray.Parse(ForgeVersionInfo)
+            For Each Item As JToken In McJson
+                ForgeVersionArray.Add(Item.ToString.Trim())
+            Next
             '排序
             Dim CurrentPosition As Integer = 1
             ForgeVersionArray.Reverse()
@@ -865,7 +937,7 @@ Finish:
             '获取版本列表
             Try
                 log("[DownloadLeft] 获取Forge版本列表开始：" & version)
-                Dim Data = GetWebsiteCode("http://bmclapi2.bangbang93.com/forge/minecraft/" & version, Encoding.Default)
+                Dim Data = GetWebsiteCode("https://bmclapi2.bangbang93.com/forge/minecraft/" & version, Encoding.Default)
                 If Not ForgeCurrent = version Then Exit Sub
                 ForgeInfo = Data
                 If Len(ForgeInfo) < 400 Then Throw New WebException("获取到的列表长度不足：" & ForgeInfo)
@@ -880,17 +952,26 @@ Finish:
             '加载版本列表信息
             Try
                 log("[DownloadLeft] 加载Forge版本列表信息开始")
-                '预处理
-                Dim builds As ArrayList = RegexSearch(ForgeInfo, "(?<=""build"":)[0-9]*")
-                Dim versions As ArrayList = RegexSearch(ForgeInfo, "(?<=""version"":"")[0-9.]*")
-                Dim branchs As ArrayList = RegexSearch(ForgeInfo, "(?<=""branch"":)[^,]*")
-                Dim times As ArrayList = RegexSearch(ForgeInfo, "(?<=modified"":"")[0-9.\-]*")
-                '检查
-                If Not (builds.Count = versions.Count And versions.Count = times.Count And branchs.Count = times.Count) Then Throw New WebException("获取到的列表长度不等")
+                ' 【改造】改用 JSON 解析，替换原来的 4 条正则。
+                ' 原实现分别用正则抓 build / version / modified / branch，再要求四者数量完全相等；
+                ' 但较新的 Forge 数据里 branch 字段会整体缺失（例如 1.21.9 的全部条目都没有，
+                ' 1.16.5 也有数条没有），数量对不上就直接判定失败 ——
+                ' 这正是 1.16.5 之后右侧列表加载不出来的原因。改用 JSON 解析后可单独兜底缺失字段。
+                Dim ForgeJson As JArray = JArray.Parse(ForgeInfo)
                 If Not ForgeCurrent = version Then Exit Sub
-                '添加
-                For i = builds.Count - 1 To 0 Step -1
-                    ForgeArray.Add(New ForgeVersion With {.build = builds(i), .version = versions(i), .time = times(i), .branch = branchs(i)})
+                ' 接口按升序返回，因此倒序遍历，使新版本排在列表前面（与原行为一致）
+                For i = ForgeJson.Count - 1 To 0 Step -1
+                    Dim Item As JObject = CType(ForgeJson(i), JObject)
+                    Dim Br As String = "null"
+                    If Item("branch") IsNot Nothing AndAlso Item("branch").Type <> JTokenType.Null Then
+                        Br = Item("branch").ToString
+                    End If
+                    ForgeArray.Add(New ForgeVersion With {
+                                   .build = If(Item("build") Is Nothing, "", Item("build").ToString),
+                                   .version = If(Item("version") Is Nothing, "", Item("version").ToString),
+                                   .time = If(Item("modified") Is Nothing, "", Item("modified").ToString),
+                                   .branch = Br
+                                   })
                 Next
             Catch ex As Exception
                 ExShow(ex, "加载Forge版本列表信息失败：" & version)
@@ -929,14 +1010,14 @@ Finish:
                                      Dim FileName As String = ForgeCurrent & "-" & ver.version & If(ver.branch = "null", "", "-" & ver.branch.Replace("""", ""))
                                      WebStart({New WebRequireFile With {
                                                      .WebURLs = New ArrayList From {
-                                                         "http://bmclapi2.bangbang93.com/forge/download/" & ver.build,
-                                                         "http://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-installer.jar",
+                                                         "https://bmclapi2.bangbang93.com/forge/download/" & ver.build,
+                                                         "https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-installer.jar",
                                                          "https://maven.minecraftforge.net/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-installer.jar",
-                                                         "http://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-universal.zip",
+                                                         "https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-universal.zip",
                                                          "https://maven.minecraftforge.net/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-universal.zip",
-                                                         "http://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-universal.jar",
+                                                         "https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-universal.jar",
                                                          "https://maven.minecraftforge.net/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-universal.jar",
-                                                         "http://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-client.zip",
+                                                         "https://bmclapi2.bangbang93.com/maven/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-client.zip",
                                                          "https://maven.minecraftforge.net/net/minecraftforge/forge/" & FileName & "/forge-" & FileName & "-client.zip"},
                                                      .LocalFolder = PATH_DOWNLOAD, .KnownFileSize = 1024 * 16
                                               }}, "Forge " & ver.version, AddressOf ForgeDownloadSuccess, AddressOf ForgeDownloadFail, WebRequireSize.AtLeast)
