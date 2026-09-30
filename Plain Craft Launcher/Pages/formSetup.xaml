@@ -429,21 +429,19 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
-                            <RowDefinition/>
+                            <RowDefinition Height="Auto"/>
                         </Grid.RowDefinitions>
                         <Label Style="{StaticResource SubTitle}" FontWeight="Bold" Content="作者" HorizontalAlignment="Right" VerticalAlignment="Top" Padding="0,10,8,0"/>
-                        <Label Style="{StaticResource SubTitle}" Content="龙腾猫跃（百度贴吧：yhhcat）" HorizontalAlignment="Left" VerticalAlignment="Top" Padding="5,10,5,0" Grid.Column="1"/>
-                        <Label Style="{StaticResource SubTitle}" FontWeight="Bold" Content="特别鸣谢" HorizontalAlignment="Right" VerticalAlignment="Top" Padding="0,10,8,0" Grid.Row="1"/>
-                        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Padding="5,10,5,0" Grid.Row="1" Grid.Column="1" FontSize="15" Foreground="#FF5C5C5C">
+                        <Label Style="{StaticResource SubTitle}" Content="wcxawa（哔哩哔哩）" HorizontalAlignment="Left" VerticalAlignment="Top" Padding="5,10,5,0" Grid.Column="1"/>
+                        <Label Style="{StaticResource SubTitle}" FontWeight="Bold" Content="原作者" HorizontalAlignment="Right" VerticalAlignment="Top" Padding="0,10,8,0" Grid.Row="1"/>
+                        <Label Style="{StaticResource SubTitle}" Content="龙腾猫跃（百度贴吧：yhhcat）" HorizontalAlignment="Left" VerticalAlignment="Top" Padding="5,10,5,0" Grid.Row="1" Grid.Column="1"/>
+                        <Label Style="{StaticResource SubTitle}" FontWeight="Bold" Content="特别鸣谢" HorizontalAlignment="Right" VerticalAlignment="Top" Padding="0,10,8,0" Grid.Row="2"/>
+                        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Padding="5,10,5,0" Grid.Row="2" Grid.Column="1" FontSize="15" Foreground="#FF5C5C5C">
                             bangbang93（BMCLAPI，bmclapi.bangbang93.com）<LineBreak/>MilkMaster<LineBreak/>DoodleHuang<LineBreak/>wahaha216
                         </TextBlock>
-                        <Label Style="{StaticResource SubTitle}" FontWeight="Bold" Content="DLL 使用" HorizontalAlignment="Right" VerticalAlignment="Top" Padding="0,10,8,0" Grid.Row="2"/>
-                        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Padding="5,10,5,0" Grid.Row="2" Grid.Column="1" FontSize="15" Foreground="#FF5C5C5C">
+                        <Label Style="{StaticResource SubTitle}" FontWeight="Bold" Content="DLL 使用" HorizontalAlignment="Right" VerticalAlignment="Top" Padding="0,10,8,0" Grid.Row="3"/>
+                        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Padding="5,10,5,0" Grid.Row="3" Grid.Column="1" FontSize="15" Foreground="#FF5C5C5C">
                             Newtonsoft.Json（Copyright © James Newton-King）<LineBreak/>Ionic.Zip（Copyright © Dino Chiesa）<LineBreak/>.Net Framework（Copyright © Microsoft Corporation）
-                        </TextBlock>
-                        <Label Style="{StaticResource SubTitle}" FontWeight="Bold" Content="免责声明" HorizontalAlignment="Right" VerticalAlignment="Top" Padding="0,10,8,0" Grid.Row="3"/>
-                        <TextBlock HorizontalAlignment="Left" VerticalAlignment="Top" Padding="5,10,5,0" Grid.Row="3" Grid.Column="1" FontSize="15" Foreground="#FF5C5C5C" TextWrapping="Wrap">
-                            Minecraft 版权归 Mojang AB 所有，使用本软件产生的版权问题，软件制作者概不负责。如有能力，请支持正版。
                         </TextBlock>
                     </Grid>
                 </StackPanel>
@@ -451,7 +449,7 @@
                     <my:Button Height="35" x:Name="btnAboutQQ" Width="137" Text="PCL 反馈群" Margin="10,0,0,0" VerticalAlignment="Bottom" ToolTip="点击加入 PCL1-CE 的反馈 QQ 群。" />
                     <my:Button Height="35" x:Name="btnAboutLuck" Width="137" Text="今日人品" Margin="10,0,0,0" VerticalAlignment="Bottom" ToolTip="看看今天的运气如何。" />
                     <my:Button Height="35" x:Name="btnAboutDonate" Width="137" Text="捐助作者" Margin="10,0,0,0" VerticalAlignment="Bottom" ToolTip="没钱的话 PCL 服务器就没戏了，然后就没法下载更新了，然后我为了维持服务器就得加广告，然后我就会被打死……"  />
-                    <my:Button Height="35" x:Name="btnAboutFolder" Width="137" Text="意见反馈" Margin="10,0,0,0" VerticalAlignment="Bottom"  />
+                    <my:Button Height="35" x:Name="btnAboutFolder" Width="137" Text="意见反馈" Margin="10,0,0,0" VerticalAlignment="Bottom" ToolTip="在 GitHub 上提交问题或建议。" />
                 </StackPanel>
 
                 <!---->

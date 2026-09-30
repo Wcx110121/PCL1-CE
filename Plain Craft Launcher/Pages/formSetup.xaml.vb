@@ -755,6 +755,7 @@ NoError:
         Process.Start(PATH & "PCL\")
     End Sub
     '意见反馈
+    ' 【改造】统一走 Feedback()，其实现已改为打开 GitHub 上的新建 Issue 页面。
     Private Sub btnSysBack_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnSysBack.Click, btnAboutFolder.Click
         Feedback()
     End Sub

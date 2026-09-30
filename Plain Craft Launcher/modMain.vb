@@ -1,4 +1,4 @@
-﻿Imports Ionic.Zip
+Imports Ionic.Zip
 
 Public Module modMain
 
@@ -3080,14 +3080,16 @@ Recheck:
     End Enum
 
     ''' <summary>
-    ''' 开始用户反馈。本函数会直接打开log文件与反馈网页。
+    ''' 【改造】打开用户反馈通道：直接打开 PCL1-CE 在 GitHub 上的新建 Issue 页面。
+    ''' 原版这里会弹出「PCL1 已停止维护、反馈通道已关闭」的提示并引导到爱发电，
+    ''' 该提示对社区版已不适用。程序崩溃时的反馈流程也调用本函数，因此一并修复。
     ''' </summary>
     Public Sub Feedback()
-        If MyMsgbox("PCL2 正在制作中，因此 PCL1 已经停止更新与维护，反馈通道已经关闭。" & vbCrLf & "你可在 http://afdian.net/@LTCat 查看 PCL2 当前制作进度。（制作进度日更，制作完成后依然免费下载）", "反馈提示", "查看 PCL2 制作进度", "返回") = 1 Then
-            Process.Start("https://afdian.net/@LTCat")
-        End If
-        'Process.Start("https://www.wjx.cn/jq/14677608.aspx")
-        'Shell("notepad", PATH & "PCL\log.txt")
+        Try
+            Process.Start("https://github.com/Wcx110121/PCL1-CE/issues/new")
+        Catch ex As Exception
+            ExShow(ex, "打开反馈页面失败", ErrorLevel.DebugOnly)
+        End Try
     End Sub
 
     Public Sub FeedbackSetup()
