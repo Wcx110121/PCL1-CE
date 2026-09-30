@@ -1,4 +1,4 @@
-﻿Public Class formSetup
+Public Class formSetup
 
     ''' <summary>
     ''' 是否可以写入设置。
@@ -1101,14 +1101,14 @@ StartReload:
 
 
     End Sub
-    ' 【改造】崩溃测试：显示软件内的模拟蓝屏界面（原先这里是「加入 PCL 反馈 QQ 群」）。
-    ' 该彩蛋原本要求首页提示条堆满窗口才触发，需 20 条以上提示同时存在，正常使用几乎
-    ' 不可能达到，因此在这里提供一个可以直接触发的入口。
-    Private Sub btnAboutCrash_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnAboutCrash.Click
-        If IsShowingDeathBlue Then Exit Sub
-        IsShowingDeathBlue = True
-        Dim BlueScreen As New formBlueScreen
-        BlueScreen.Show()
+    ' 【改造】加群按钮。原版按钮的加群链接 `shang.qq.com/wpa/qunwpa?idkey=...` 指向
+    ' 早已废弃的旧群，这里改为 PCL1-CE 的反馈群（QQ 加群短链）。
+    Private Sub btnAboutQQ_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnAboutQQ.Click
+        Try
+            Process.Start("https://qm.qq.com/q/PJ5qRp6xSE")
+        Catch ex As Exception
+            ExShow(ex, "打开 QQ 群链接失败", ErrorLevel.DebugOnly)
+        End Try
     End Sub
     ''' <summary>
     ''' 【改造】今日人品：玩法与 PCL2 相同。人品值由「当天日期 + 本机标识」共同决定，

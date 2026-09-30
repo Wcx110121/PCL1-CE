@@ -1,4 +1,4 @@
-﻿Public Class formMain
+Public Class formMain
 
 #Region "全窗体事件"
 
@@ -508,20 +508,9 @@ EndFeedback:
                 WaitingHintWindow.RemoveAt(0)
             Loop
 
-            '彩蛋检查
-            ' 【改造】触发阈值支持通过注册表 ThemeDeathBlueThreshold 覆盖，默认仍为「窗口高度 - 20」。
-            ' 提示条每条高 25px、存活约 2-5 秒，正常使用几乎不可能自然堆满窗口，
-            ' 因此提供该入口用于验证这个彩蛋确实可以被触发：把阈值调小即可用少量提示触发。
-            Dim HintThreshold As Integer = MAINFORM_HEIGHT - 20
-            Dim CustomThreshold As String = ReadReg("ThemeDeathBlueThreshold", "")
-            If IsNumeric(CustomThreshold) Then HintThreshold = Val(CustomThreshold)
-            If panHint.ActualHeight > HintThreshold And Not IsShowingDeathBlue Then
-                If ReadReg("ThemeDeathBlue", "False") = "False" Then
-                    IsShowingDeathBlue = True
-                    Dim BlueScreen As New formBlueScreen
-                    BlueScreen.Show()
-                End If
-            End If
+            ' 【改造】原本这里是「提示条堆满窗口即触发死机蓝」的彩蛋，连同用于验证的
+            ' ThemeDeathBlueThreshold 注册表阈值一并移除。该彩蛋现在改为
+            ' 「每年 4 月 1 日第一次成功启动游戏时触发」，实现见 modStart.vb 的 GameAprilFoolsCheck。
 
             '显示弹窗
             Do While WaitingMyMsgbox.Count > 0

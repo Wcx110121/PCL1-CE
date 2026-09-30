@@ -1,4 +1,4 @@
-﻿Imports Ionic.Zip
+Imports Ionic.Zip
 
 Module modStart
 
@@ -110,6 +110,9 @@ Module modStart
             frmHomeRight.StartProcess = 1
             log("[Launch] 启动结束")
 
+            '愚人节彩蛋
+            GameAprilFoolsCheck()
+
         Catch ex As Exception
 
             If ex.Message = "" Then
@@ -127,6 +130,33 @@ Module modStart
                 End If
             End If
 
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' 【改造】愚人节彩蛋：每年 4 月 1 日、当天第一次成功启动游戏时，显示一次软件内的模拟蓝屏。
+    ''' 由于只在启动流程走到「启动结束」后才检查，启动失败不会触发。
+    ''' 日期取自本机系统时间，所以把系统日期改到 4 月 1 日即可看到；
+    ''' 触发后会把当天日期写入注册表，同一天内不会重复出现。
+    ''' </summary>
+    Private Sub GameAprilFoolsCheck()
+        Try
+            Dim Today As String = Date.Now.ToString("yyyy-MM-dd")
+            If Date.Now.ToString("MM-dd") <> "04-01" Then Exit Sub
+            If ReadReg("AprilFoolsDate", "") = Today Then Exit Sub
+            If IsShowingDeathBlue Then Exit Sub
+            WriteReg("AprilFoolsDate", Today)
+            log("[Launch] 触发愚人节彩蛋")
+            'GameStart 运行在非 UI 线程，窗口必须在 UI 线程创建
+            frmMain.Dispatcher.Invoke(Sub()
+                                          If Not IsShowingDeathBlue Then
+                                              IsShowingDeathBlue = True
+                                              Dim BlueScreen As New formBlueScreen
+                                              BlueScreen.Show()
+                                          End If
+                                      End Sub)
+        Catch ex As Exception
+            log("[Launch] 愚人节彩蛋检查失败：" & ex.Message)
         End Try
     End Sub
 
