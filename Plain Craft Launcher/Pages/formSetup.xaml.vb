@@ -1110,6 +1110,94 @@ StartReload:
         Dim BlueScreen As New formBlueScreen
         BlueScreen.Show()
     End Sub
+    ''' <summary>
+    ''' 【改造】今日人品：玩法与 PCL2 相同。人品值由「当天日期 + 本机标识」共同决定，
+    ''' 同一天内反复查看结果固定，跨天则变化。提示词沿用 PCL2 的原文。
+    ''' </summary>
+    Private Sub btnAboutLuck_Click(ByVal sender As Object, ByVal e As EventArgs) Handles btnAboutLuck.Click
+        Try
+            Dim Score As Integer = GetJrrpScore()
+            '与 PCL2 一致：人品值为 0 时要先同意附加使用条款
+            If Score = 0 Then
+                If MyMsgbox("在查看结果前，请先同意以下附加使用条款：" & vbCrLf &
+                            "1. 我知晓并了解 PCL 的今日人品功能完全没有出 Bug。" & vbCrLf &
+                            "2. PCL 不对使用本软件所间接造成的一切财产损失（如砸电脑等）等负责。",
+                            "附加使用条款", "同意", "不同意") <> 1 Then Exit Sub
+            End If
+            Dim Text As String = "你今天的人品值是：" & Score & vbCrLf & GetJrrpMessage(Score)
+            If Score = 100 Then
+                ' 【改造】PCL2 在满分时会解锁隐藏主题「欧皇彩」。PCL1-CE 没有该主题，
+                ' 改为解锁自身已有的两个隐藏主题，同样作为满分的奖励。
+                WriteReg("ThemeHunluan", "True")
+                WriteReg("ThemeDeathBlue", "True")
+                RefreshHidden()
+                Text &= vbCrLf & vbCrLf & "隐藏主题「混乱黄」与「死机蓝」已解锁，可在主题设置中查看！"
+            End If
+            MyMsgbox(Text, "今日人品")
+        Catch ex As Exception
+            ExShow(ex, "查看今日人品失败", ErrorLevel.AllUsers)
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' 【改造】今日人品的本机标识：首次使用时生成一个随机值存入注册表，之后保持不变，
+    ''' 使不同机器的同一天结果不同，而同一台机器同一天的结果稳定。
+    ''' </summary>
+    Private Function GetJrrpUserKey() As String
+        Dim Key As String = ReadReg("JrrpKey", "")
+        If Key = "" Then
+            Key = Guid.NewGuid().ToString()
+            WriteReg("JrrpKey", Key)
+        End If
+        Return Key
+    End Function
+
+    ''' <summary>
+    ''' 【改造】计算今日人品值，范围 0-100。
+    ''' 注：PCL2 的人品值由官方服务器下发，PCL1-CE 没有对应服务，
+    ''' 因此这里改为按「日期 + 本机标识」做确定性哈希，保证同一天结果固定。
+    ''' </summary>
+    Private Function GetJrrpScore() As Integer
+        Dim Seed As String = Date.Now.ToString("yyyy-MM-dd") & "|" & GetJrrpUserKey()
+        '用 MD5 而不是自写的多项式哈希：后者的低位受字符串末尾字符主导，取模之后分布明显偏向
+        '中间值，实测 60 天里一次都没抽到 0 分与 100 分这两个带特殊提示词的值。
+        Dim Bytes() As Byte = Text.Encoding.UTF8.GetBytes(Seed)
+        Dim Md5 As System.Security.Cryptography.MD5 = System.Security.Cryptography.MD5.Create()
+        Dim Digest() As Byte = Md5.ComputeHash(Bytes)
+        Md5.Clear()
+        Return CInt(BitConverter.ToUInt32(Digest, 0) Mod 101UI)
+    End Function
+
+    ''' <summary>
+    ''' 【改造】人品值对应的提示词。原文取自 PCL2（0、50、100 为特殊值，其余按区间）。
+    ''' </summary>
+    Private Function GetJrrpMessage(ByVal Score As Integer) As String
+        Select Case Score
+            Case 0
+                Return "？！"
+            Case 50
+                Return "！五五开……"
+            Case 100
+                Return "！100！100！！！！！"
+            Case 0 To 10
+                Return "……（是百分制哦）"
+            Case 11 To 19
+                Return "？！不会吧……"
+            Case 20 To 39
+                Return "！呜……"
+            Case 40 To 49
+                Return "！勉强还行吧……？"
+            Case 51 To 64
+                Return "！还行啦，还行啦。"
+            Case 65 To 89
+                Return "！今天运气不错呢！"
+            Case 90 To 97
+                Return "！好评如潮！"
+            Case 98 To 99
+                Return "！差点就到 100 了呢……"
+        End Select
+        Return ""
+    End Function
     '捐助
     Private Sub btnAboutDonate_Click(ByVal sender As Object, ByVal e As EventArgs) Handles btnAboutDonate.Click
         Try
