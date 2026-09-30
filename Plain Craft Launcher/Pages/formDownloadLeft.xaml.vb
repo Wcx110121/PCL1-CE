@@ -1,4 +1,4 @@
-﻿Imports Ionic.Zip
+Imports Ionic.Zip
 
 Public Class formDownloadLeft
 
@@ -614,6 +614,10 @@ Public Class formDownloadLeft
         Dim url As String
         Dim time As String
         Dim getByBMCLAPI As Boolean
+        ''' <summary>
+        ''' 【修复】对应的 Minecraft 版本号（如 1.21.11、26.2），用于给列表排序。
+        ''' </summary>
+        Dim mcversion As String
     End Structure
     Public Sub GetOptiFineBasic()
 
@@ -643,21 +647,30 @@ Public Class formDownloadLeft
         '加载版本列表信息
         Try
             '预处理
-            Dim ids As ArrayList = RegexSearch(OptiFineInfo, "(?<=downloadLineFile(First)?'>)[^<]*")
-            Dim urls As ArrayList = RegexSearch(OptiFineInfo, "(?<=downloadLineMirror'><a href="")[^""]*")
-            Dim times As ArrayList = RegexSearch(OptiFineInfo, "(?<=downloadLineDate'>)[^<]*")
+            ' 【修复】optifine.net 改版后，旧页面使用的 downloadLineFile / downloadLineMirror /
+            ' downloadLineDate 这几个类名已经不存在（实测匹配数为 0），新版改为 downloadTable 表格结构：
+            '   <td class='colFile'>OptiFine HD U K2 pre1</td>
+            '   <td class='colMirror'><a href="http://optifine.net/adloadx?f=...">(Mirror)</a></td>
+            '   <td class='colDate'>22.09.2026</td>
+            Dim ids As ArrayList = RegexSearch(OptiFineInfo, "(?<=<td class='colFile'>)[^<]*")
+            Dim urls As ArrayList = RegexSearch(OptiFineInfo, "(?<=<td class='colMirror'><a href="")[^""]*")
+            Dim times As ArrayList = RegexSearch(OptiFineInfo, "(?<=<td class='colDate'>)[^<]*")
             '长度检查
-            ' 【修复】optifine.net 改版后，旧的正则表达式已经匹配不到任何条目。
-            ' 此时三个数组的长度同为 0，会「成功」通过下方的等长检查，得到一个空列表，
-            ' 表现为列表页一片空白，并在随后取首项时抛出索引越界。这里把空列表也视为失败，改走 BMCLAPI 源。
+            ' 三个数组的长度必须相等且非空。若全为 0，会「成功」通过等长检查却得到一个空列表，
+            ' 表现为列表页一片空白，并在随后取首项时抛出索引越界，因此这里把空列表也视为失败。
             If ids.Count = 0 Then Throw New WebException("未从官方页面中匹配到任何版本")
             If Not (ids.Count = urls.Count And urls.Count = times.Count) Then Throw New WebException("获取到的列表长度不等")
             '添加
             For i = 0 To ids.Count - 1
+                '新版页面的 colFile 只有「HD U K2 pre1」这样的后缀，Minecraft 版本号藏在下载地址里，
+                '这里把它取出来拼到最前面，让官方源与 BMCLAPI 源的显示格式保持一致。
+                Dim mc As String = GetOptiFineMCVersion(urls(i).ToString)
+                Dim typeName As String = ids(i).ToString.Replace("OptiFine ", "")
                 OptiFineArray.Add(New OptiFineVersion With {
-                                  .id = ids(i).Replace("OptiFine ", ""),
+                                  .id = If(mc = "", typeName, mc & " " & typeName),
                                   .url = urls(i),
-                                  .time = times(i).ToString.Split(".")(2) & "-" & times(i).ToString.Split(".")(1) & "-" & times(i).ToString.Split(".")(0),
+                                  .time = GetOptiFineDate(times(i).ToString),
+                                  .mcversion = mc,
                                   .getByBMCLAPI = False})
             Next
             GoTo Success
@@ -693,10 +706,12 @@ BMCLAPI:
             If Not filename.Count = id.Count Then Throw New WebException("获取到的列表长度不等")
             '添加
             For i = 0 To filename.Count - 1
+                'filename 形如 OptiFine_1.13.2_HD_U_E7.jar，从中取出用于排序的 Minecraft 版本号
                 OptiFineArray.Add(New OptiFineVersion With {
                                   .id = id(i).Replace("_", " "),
                                   .url = "http://optifine.net/adloadx?f=" & filename(i),
                                   .time = "",
+                                  .mcversion = GetOptiFineMCVersion(filename(i).ToString),
                                   .getByBMCLAPI = True
                                   })
             Next
@@ -710,10 +725,106 @@ BMCLAPI:
         End Try
 
 Success:
+        ' 【修复】统一排序：按 Minecraft 版本号从新到旧。
+        ' BMCLAPI 返回的条目顺序是乱的（1.13.2 后面可能紧跟 1.12.2 或 1.7），而官方页面虽然大致
+        ' 由新到旧，但预览版与正式版交错。这里两个源都排一次序，保证列表始终是新的在上。
+        SortOptiFineArray()
         log("[DownloadLeft] 加载 OptiFine 版本列表信息成功")
         OptiFineState = LoadState.Success
 
     End Sub
+
+    ''' <summary>
+    ''' 【修复】从 OptiFine 的文件名或下载地址中取出 Minecraft 版本号。
+    ''' 例：OptiFine_1.21.11_HD_U_J9.jar → 1.21.11 ； preview_OptiFine_26.2_HD_U_K2_pre1.jar → 26.2
+    ''' </summary>
+    Private Function GetOptiFineMCVersion(ByVal Text As String) As String
+        Try
+            Dim Result As ArrayList = RegexSearch(Text, "(?<=OptiFine_)[^_]+")
+            If Result.Count > 0 Then Return Result(0).ToString.Trim
+        Catch
+        End Try
+        Return ""
+    End Function
+
+    ''' <summary>
+    ''' 【修复】把官方页面上的日期（22.09.2026，日.月.年）转换成 2026-09-22。
+    ''' 格式不符合预期时原样返回，避免像原先那样直接对 Split 结果取下标而抛出越界。
+    ''' </summary>
+    Private Function GetOptiFineDate(ByVal Text As String) As String
+        Try
+            Dim Parts() As String = Text.Trim.Split(".")
+            If Parts.Length >= 3 Then
+                Return Parts(2).Trim.PadLeft(4, "0") & "-" & Parts(1).Trim.PadLeft(2, "0") & "-" & Parts(0).Trim.PadLeft(2, "0")
+            End If
+        Catch
+        End Try
+        Return Text.Trim
+    End Function
+
+    ''' <summary>
+    ''' 【修复】把 OptiFine 版本按 Minecraft 版本号从新到旧重新排列。
+    ''' </summary>
+    Private Sub SortOptiFineArray()
+        Try
+            Dim Sorted As New ArrayList
+            For Each Ver As OptiFineVersion In OptiFineArray
+                Sorted.Add(Ver)
+            Next
+            Sorted.Sort(New OptiFineComparer)
+            OptiFineArray = Sorted
+        Catch ex As Exception
+            ExShow(ex, "OptiFine 版本列表排序失败", ErrorLevel.Slient)
+        End Try
+    End Sub
+
+    ''' <summary>
+    ''' 【修复】OptiFine 版本的排序规则：先比 Minecraft 版本号（新的在前），
+    ''' 同一游戏版本下正式版排在预览版之前，同为正式版或预览版时按名称倒序（K2 在 K1 之前）。
+    ''' </summary>
+    Private Class OptiFineComparer
+        Implements IComparer
+
+        Public Function Compare(ByVal x As Object, ByVal y As Object) As Integer Implements IComparer.Compare
+            Dim A As OptiFineVersion = CType(x, OptiFineVersion)
+            Dim B As OptiFineVersion = CType(y, OptiFineVersion)
+            'Minecraft 版本号新的排前面
+            Dim Result As Integer = CompareMCVersion(B.mcversion, A.mcversion)
+            If Result <> 0 Then Return Result
+            '同一游戏版本：正式版在前，预览版在后
+            Dim APre As Boolean = A.id.ToLower.Contains("pre")
+            Dim BPre As Boolean = B.id.ToLower.Contains("pre")
+            If APre <> BPre Then Return If(APre, 1, -1)
+            '再按名称倒序
+            Return String.Compare(B.id, A.id, StringComparison.OrdinalIgnoreCase)
+        End Function
+    End Class
+
+    ''' <summary>
+    ''' 【修复】比较两个 Minecraft 版本号字符串（如 1.21.11、26.2、1.7.10）。
+    ''' 返回正数表示 A 比 B 新。无法解析的段落按 0 处理，保证不会抛出异常。
+    ''' </summary>
+    Private Shared Function CompareMCVersion(ByVal A As String, ByVal B As String) As Integer
+        Dim PartsA() As String = If(A, "").Split(".")
+        Dim PartsB() As String = If(B, "").Split(".")
+        For i As Integer = 0 To Math.Max(PartsA.Length, PartsB.Length) - 1
+            Dim TextA As String = If(i < PartsA.Length, PartsA(i), "")
+            Dim TextB As String = If(i < PartsB.Length, PartsB(i), "")
+            Dim NumA As Integer = 0
+            Dim NumB As Integer = 0
+            Dim IsNumA As Boolean = Integer.TryParse(TextA, NumA)
+            Dim IsNumB As Boolean = Integer.TryParse(TextB, NumB)
+            If IsNumA AndAlso IsNumB Then
+                '两段都是数字：按数值比较（1.21.11 比 1.7.10 新）
+                If NumA <> NumB Then Return If(NumA > NumB, 1, -1)
+            Else
+                '含字母的段落是快照版本号（如 21w08b、20-pre4），按字符串比较
+                Dim Result As Integer = String.Compare(TextA, TextB, StringComparison.OrdinalIgnoreCase)
+                If Result <> 0 Then Return If(Result > 0, 1, -1)
+            End If
+        Next
+        Return 0
+    End Function
 
     Private Sub OptiFineDownloadStart(ByVal sender As ListItem, ByVal e As System.Windows.Input.MouseButtonEventArgs) Handles item1.ButtonClick, item2.ButtonClick
         If IsNothing(sender.Tag) Or Not selecter.SelectIndexName = "OptiFine" Then Exit Sub

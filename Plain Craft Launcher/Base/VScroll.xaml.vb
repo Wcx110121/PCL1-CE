@@ -1,4 +1,4 @@
-﻿Public Class VScroll
+Public Class VScroll
 
     Public Event Change(ByVal sender As Object)
 
@@ -266,10 +266,16 @@
     ''' <remarks></remarks>
     Public Sub RunMouseWheel(ByVal sender As Object, ByVal e As System.Windows.Input.MouseWheelEventArgs)
         If Me.Visibility = Visibility.Visible Then
+            ' 【修复】动画组的名称原本每次都调用 GetUUID() 生成一个全新的 UUID。
+            ' 而 AniStart 只有在「名称重复」时才会停止上一个动画组，于是每一次滚轮都会新增一个
+            ' 各自为政的滚动动画：连续滚动时多个动画互相覆盖，滚动距离被吞掉，
+            ' 表现出来就是滚轮翻不到底、以及滚一段又弹回去。这里改用本控件固定且唯一的名称，
+            ' 让新的滚动动画直接替换掉上一个。
+            If Len(Me.Name) < 1 Then Me.Name = "Aniamtioner" & GetUUID() '确保这个控件有名称
             '如果时间为负数就不会执行，所以加绝对值
             AniStart({
                      AaValue(Me, -e.Delta, Math.Abs(e.Delta) * 2, , New AniEaseEnd)
-                 }, "Scroll" & GetUUID(), False)
+                 }, "Scroll" & Me.Name, False)
         End If
     End Sub
 
