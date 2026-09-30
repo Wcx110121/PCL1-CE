@@ -1,4 +1,4 @@
-Imports Ionic.Zip
+﻿Imports Ionic.Zip
 
 Public Class formDownloadLeft
 
@@ -635,7 +635,7 @@ Public Class formDownloadLeft
         '获取版本列表
         Try
             log("[DownloadLeft] 获取 OptiFine 版本列表开始")
-            OptiFineInfo = GetWebsiteCode("http://www.optifine.net/downloads", Encoding.Default)
+            OptiFineInfo = GetWebsiteCode("https://www.optifine.net/downloads", Encoding.Default)
             If Len(OptiFineInfo) < 200 Then Throw New WebException("获取到的列表长度不足：" & OptiFineInfo)
         Catch ex As Exception
             ExShow(ex, "获取 OptiFine 版本列表失败")
@@ -650,7 +650,7 @@ Public Class formDownloadLeft
             ' 【修复】optifine.net 改版后，旧页面使用的 downloadLineFile / downloadLineMirror /
             ' downloadLineDate 这几个类名已经不存在（实测匹配数为 0），新版改为 downloadTable 表格结构：
             '   <td class='colFile'>OptiFine HD U K2 pre1</td>
-            '   <td class='colMirror'><a href="http://optifine.net/adloadx?f=...">(Mirror)</a></td>
+            '   <td class='colMirror'><a href="https://optifine.net/adloadx?f=...">(Mirror)</a></td>
             '   <td class='colDate'>22.09.2026</td>
             Dim ids As ArrayList = RegexSearch(OptiFineInfo, "(?<=<td class='colFile'>)[^<]*")
             Dim urls As ArrayList = RegexSearch(OptiFineInfo, "(?<=<td class='colMirror'><a href="")[^""]*")
@@ -709,7 +709,7 @@ BMCLAPI:
                 'filename 形如 OptiFine_1.13.2_HD_U_E7.jar，从中取出用于排序的 Minecraft 版本号
                 OptiFineArray.Add(New OptiFineVersion With {
                                   .id = id(i).Replace("_", " "),
-                                  .url = "http://optifine.net/adloadx?f=" & filename(i),
+                                  .url = "https://optifine.net/adloadx?f=" & filename(i),
                                   .time = "",
                                   .mcversion = GetOptiFineMCVersion(filename(i).ToString),
                                   .getByBMCLAPI = True
