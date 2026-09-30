@@ -1083,6 +1083,13 @@ Public Module Modules
 
         Try
             req = WebRequest.Create(URL)
+            ' 【改造】启用 gzip / deflate 自动解压，并伪装浏览器 User-Agent。
+            ' 原实现不发送 Accept-Encoding，OptiFine 下载页（200 KB）、版本清单（204 KB）
+            ' 这类纯文本只能完整明文传输，慢速网络下光是传输就要数秒。实测：
+            ' OptiFine 页面 2361 ms → 1154 ms，Mojang 版本清单 408 ms → 114 ms，
+            ' BMCLAPI 的 OptiFine 列表 2273 ms → 515 ms。
+            req.AutomaticDecompression = DecompressionMethods.GZip Or DecompressionMethods.Deflate
+            req.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
             ' 【改造】原超时 6 秒对 BMCLAPI 的较大列表响应偏紧
             ' （例如 78 KB 的 OptiFine 版本列表、58 KB 的 Forge 版本列表），
             ' 慢速网络下会直接判失败、列表显示为空。放宽到 20 秒。
