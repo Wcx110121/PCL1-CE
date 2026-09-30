@@ -98,7 +98,7 @@
             chDownOptiFineOpen.Checked = ReadIni("setup", "DownOptiFineOpen", "False")
             chDownOptiFineFolder.Checked = ReadIni("setup", "DownOptiFineFolder", "True")
             textDownFolder.Text = ReadIni("setup", "DownFolder", "")
-            textDownMaxinum.Text = ReadIni("setup", "DownMaxinum", "20")
+            textDownMaxinum.Text = ReadIni("setup", "DownMaxinum", "8")
 
             '读取设置：主页设置
             chHomeUpdate.Checked = ReadIni("setup", "HomeUpdate", "True")

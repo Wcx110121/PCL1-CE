@@ -473,6 +473,13 @@ Public Class formDownloadLeft
             ShowHint(New HintConverter("正在下载中，请勿重复操作", HintState.Warn))
             Exit Sub
         End If
+        ' 【修复】版本本体下载完成后，一次下载还会继续补全支持库与资源文件，而它们各自使用
+        ' 不同的下载组名，上面两个判断覆盖不到。此时用户再点一次就会重复走一遍整个流程，
+        ' 两个流程同时下载同一批文件，造成「文件正由另一进程使用」「文件过小」等失败。
+        If GameFullDownloadRunning Then
+            ShowHint(New HintConverter("该版本正在补全文件，请勿重复操作", HintState.Warn))
+            Exit Sub
+        End If
         If Not Directory.Exists(local) Then Directory.CreateDirectory(local)
         '检测已存在版本
         If GetFileSize(local & realID & ".jar") > 1024 Then

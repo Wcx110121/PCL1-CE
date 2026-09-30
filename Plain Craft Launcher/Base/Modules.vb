@@ -2699,7 +2699,12 @@ Public Module Web
     Public WebGroups As New Dictionary(Of String, WebGroup)
 
     Private WebDownloadingList As New ArrayList
-    Public WebDownloadCountMax As Integer = ReadIni("setup", "DownMaxinum", "20")
+    ''' <summary>
+    ''' 【改造】同时下载的最大文件数。默认值由 20 下调为 8：实测 20 并发时 BMCLAPI 会对
+    ''' 资源与支持库请求返回 403（限速），进而触发大量重试；8 并发既能跑满带宽，
+    ''' 也不会触发限速。需要更高的并发仍可在设置页调整。
+    ''' </summary>
+    Public WebDownloadCountMax As Integer = ReadIni("setup", "DownMaxinum", "8")
 
 #Region "类与枚举"
 

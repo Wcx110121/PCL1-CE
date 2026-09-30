@@ -759,7 +759,11 @@ FinishJson:
     Public GameDownloadReporter As Action(Of String, Double) = Nothing
 
     Private GameFullDownloadLock As New Object
-    Private GameFullDownloadRunning As Boolean = False
+    ''' <summary>
+    ''' 【改造】是否正在执行一次下载（包含后续的支持库与资源文件补全）。
+    ''' 下载页用它判断「该版本仍在下载中」，避免版本本体下完后用户重复点击。
+    ''' </summary>
+    Public GameFullDownloadRunning As Boolean = False
 
     ''' <summary>
     ''' 【改造】向一次下载的调用方汇报进度。回调中的异常会被忽略，以免影响下载本身。
@@ -801,7 +805,16 @@ FinishJson:
                 GameDownloadNotify("支持库已完整", 0.3)
             Else
                 log("[Download] 需要补全支持库：" & VersionName)
-                GameLibDownload(VersionName, FileList)
+                Try
+                    GameLibDownload(VersionName, FileList)
+                Catch ex As Exception
+                    ' 【改造】下载组只要有一个文件失败就会整体判为失败，但这些失败大多来自并发
+                    ' 冲突（同一文件被两个线程写）或瞬时网络错误，重试过程中文件其实已经补齐。
+                    ' 这里复查一次，确实完整就继续，避免把已经下好的版本报成失败。
+                    Dim RecheckList As New ArrayList
+                    If Not GameLibCheck(Ver, RecheckList) Then Throw
+                    log("[Download] 支持库下载过程有失败，但复查后文件已完整，继续")
+                End Try
             End If
 
             '资源文件
@@ -813,7 +826,13 @@ FinishJson:
                 GameDownloadNotify("资源文件已完整", 0.7)
             Else
                 log("[Download] 需要补全资源文件：" & Ver.Assets)
-                GameAssetsDownload(Ver)
+                Try
+                    GameAssetsDownload(Ver)
+                Catch ex As Exception
+                    ' 【改造】同上：部分文件失败不代表整体不可用，复查一次再决定是否报错。
+                    If Not GameAssetsCheck(Ver.Assets) Then Throw
+                    log("[Download] 资源文件下载过程有失败，但复查后文件已完整，继续")
+                End Try
             End If
 
             GameDownloadNotify("下载完成", 1)
