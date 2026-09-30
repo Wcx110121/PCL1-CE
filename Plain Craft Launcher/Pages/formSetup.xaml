@@ -448,7 +448,7 @@
                     </Grid>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal"  Margin="5,15,0,15">
-                    <my:Button Height="35" x:Name="btnAboutQQ" Width="284" Text="加入 PCL 反馈 QQ 群" Margin="10,0,0,0"   />
+                    <my:Button Height="35" x:Name="btnAboutCrash" Width="284" Text="崩溃测试" Margin="10,0,0,0" Foreground="#FFE81123" ToolTip="触发一次软件内的模拟蓝屏，用于验证该彩蛋。不会影响你的系统。" />
                     <my:Button Height="35" x:Name="btnAboutDonate" Width="137" Text="捐助作者" Margin="10,0,0,0" VerticalAlignment="Bottom" ToolTip="没钱的话 PCL 服务器就没戏了，然后就没法下载更新了，然后我为了维持服务器就得加广告，然后我就会被打死……"  />
                     <my:Button Height="35" x:Name="btnAboutFolder" Width="137" Text="意见反馈" Margin="10,0,0,0" VerticalAlignment="Bottom"  />
                 </StackPanel>

@@ -1101,9 +1101,14 @@ StartReload:
 
 
     End Sub
-    '加群
-    Private Sub btnSysQQ_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnAboutQQ.Click
-        Process.Start("http://shang.qq.com/wpa/qunwpa?idkey=f003df7898678e4bdeb53061d8f9b04445c9ff206b0515fdab9bfbd5cb3eaec0")
+    ' 【改造】崩溃测试：显示软件内的模拟蓝屏界面（原先这里是「加入 PCL 反馈 QQ 群」）。
+    ' 该彩蛋原本要求首页提示条堆满窗口才触发，需 20 条以上提示同时存在，正常使用几乎
+    ' 不可能达到，因此在这里提供一个可以直接触发的入口。
+    Private Sub btnAboutCrash_Click(ByVal sender As Object, ByVal e As System.EventArgs) Handles btnAboutCrash.Click
+        If IsShowingDeathBlue Then Exit Sub
+        IsShowingDeathBlue = True
+        Dim BlueScreen As New formBlueScreen
+        BlueScreen.Show()
     End Sub
     '捐助
     Private Sub btnAboutDonate_Click(ByVal sender As Object, ByVal e As EventArgs) Handles btnAboutDonate.Click
