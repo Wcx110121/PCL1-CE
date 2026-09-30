@@ -1,4 +1,4 @@
-Public Class formSetup
+﻿Public Class formSetup
 
     ''' <summary>
     ''' 是否可以写入设置。
@@ -104,7 +104,7 @@ Public Class formSetup
             chHomeUpdate.Checked = ReadIni("setup", "HomeUpdate", "True")
             chHomeUpdateRelease.Checked = ReadIni("setup", "HomeUpdateRelease", "False")
             chHomeSave.Checked = ReadReg("HomeSave", "True")
-            chHomeEnabled.Checked = ReadIni("setup", "HomeEnabled", "True")
+            chHomeEnabled.Checked = ReadIni("setup", "HomeEnabled", "False") ' 【改造】推荐源的服务均已停止，默认关闭
             chHomeAutologin.Checked = ReadIni("setup", "HomeAutologin", "True")
             chHomeAutoplay.Checked = ReadIni("setup", "HomeAutoplay", "True")
             chHomeHide.Checked = ReadIni("setup", "HomeHide", "True")

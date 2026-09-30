@@ -337,14 +337,14 @@
                             <my:Checkbox Context="只提示正式版 Minecraft 更新"  x:Name="chHomeUpdateRelease" ToolTip="在快照、预发布版更新时不显示更新提示。" Tag="HomeUpdateRelease"/>
                         </StackPanel>
                     </Grid>
-                    <my:Checkbox x:Name="chHomeSave" Context="保存密码"  Tag="*HomeSave" />
+                    <my:Checkbox x:Name="chHomeSave" Context="保存登录状态"  Tag="*HomeSave" ToolTip="保存微软账号的登录凭据（刷新令牌），下次启动可以直接使用，不必重新登录。" />
                     <Grid Margin="0" x:Name="panHomeSave" Height="28" >
                         <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Height="28">
                             <my:Checkbox x:Name="chHomeAutologin" Context="自动登录"  Tag="HomeAutologin"/>
                         </StackPanel>
                     </Grid>
 
-                <my:Checkbox Context="启用推荐" x:Name="chHomeEnabled" Tag="HomeEnabled" />
+                <my:Checkbox Context="启用推荐" x:Name="chHomeEnabled" Tag="HomeEnabled" ToolTip="在主页左侧显示推荐内容。注意：各推荐源的数据服务均已停止（PCL 推荐源服务器停止响应、MCBBS 已关站、贴吧页面结构变化），因此当前不会有内容显示。" />
 
                 <my:Checkbox Context="随机隐藏部分没有图片的推荐 *"  Margin="40,0,0,0" x:Name="chHomeHide" ToolTip="（高级设置）如果一个推荐项目没有图片，每次启动时它都只有一半几率被展示。" Tag="HomeHide" />
                     <my:Checkbox Context="不显示不满一页的推荐 *"  Margin="40,0,0,0" x:Name="chHomeFull" ToolTip="（高级设置）如果推荐项目不足以填满一页（不足 4 个），则不显示那一页。" Tag="HomeFull" />

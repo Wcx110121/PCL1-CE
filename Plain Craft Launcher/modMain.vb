@@ -1010,7 +1010,7 @@ FinishSearch:
     Public Sub PoolMinecraftFolder()
         Try
             '等待版本列表加载结束
-            ' 【修复】加超时保护：这段等待运行在 UI 线程上（联机页与设置页的按钮会直接调用本方法），
+            ' 【修复】加超时保护：这段等待运行在 UI 线程上（首次使用向导 formGuild 与设置页的按钮都会直接调用本方法），
             ' 一旦标志位因任何原因没有复位，界面就会永久卡死。超过 30 秒后放弃等待、继续执行。
             Dim VersionWaitStart As Integer = Environment.TickCount
             Do While IsPoolVersionListRunning AndAlso Environment.TickCount - VersionWaitStart < 30000
@@ -1745,6 +1745,16 @@ LoadEnd:
     End Class
     Public Sub PoolPush()
         If MODE_OFFLINE Then frmStart.IsPushLoading = False : Exit Sub
+
+        ' 【改造】总开关「启用推荐」关闭时直接返回，不再向任何推荐源发起请求。
+        ' 各推荐源依赖的服务如今均已停止响应（PCL 推荐源 HTTP 405、MCBBS 已关站、
+        ' 百度贴吧与 Minecraft Forum 均返回 403），请求它们既拿不到内容，
+        ' 又会往日志里写满错误、并让启动画面多等几秒。总开关默认值已改为 False。
+        If ReadIni("setup", "HomeEnabled", "False") = "False" Then
+            frmStart.IsPushLoading = False
+            log("[Pool-HomeLeft] 推荐功能已关闭，跳过全部推荐源")
+            Exit Sub
+        End If
 
         '加载特殊处理的第三方推荐
         ' 【改造】以下推荐源的默认值统一从 True 改为 False，原因是它们依赖的服务都已停止：

@@ -1,4 +1,4 @@
-﻿Imports System.Drawing.Imaging
+Imports System.Drawing.Imaging
 Imports System.Reflection
 Imports System.Security.Cryptography
 Imports System.Windows.Threading
@@ -976,32 +976,43 @@ Public Module Modules
     End Class
     Private CacheIni As New Dictionary(Of String, IniCache)
     ''' <summary>
+    ''' 【修复】ini 缓存与文件写入的统一同步锁。
+    ''' 原先 GetIni / ReadIni / WriteIni 全程没有任何同步，而下载线程与 UI 线程会同时读写同一个 ini：
+    ''' 两个线程同时向 cache 添加同一个键会抛出 ArgumentException，该异常被 ReadIni 的 Catch 吞掉后
+    ''' 直接返回默认值；WriteIni 的「读整个文件 → 改一行 → 覆盖写回」交错执行时，后写者还会覆盖
+    ''' 先写者刚改好的键。表现出来就是「改完设置只有一部分生效，重启后有的又变回去」。
+    ''' SyncLock 是可重入的，WriteIni 内部调用 GetIni/ReadIni 不会自锁死。
+    ''' </summary>
+    Private IniLock As New Object
+    ''' <summary>
     ''' 获取Ini文件内容，这可能会使用到缓存。
     ''' </summary>
     ''' <param name="FileName">文件路径或简写。简写将会使用“PCL\文件名.ini”作为路径。</param>
     ''' <returns></returns>
     ''' <remarks></remarks>
     Private Function GetIni(ByVal FileName As String) As IniCache
-        If Not FileName.Contains(":\") Then FileName = PATH & "PCL\" & FileName & ".ini"
-        If CacheIni.ContainsKey(FileName) Then
-            '返回缓存中的信息
-            Dim Cache As New IniCache
-            CacheIni.TryGetValue(FileName, Cache)
-            Return Cache '防止ByRef导致缓存变更
-        Else
-            If File.Exists(FileName) Then
-                '返回文件信息并且记入缓存
-                Dim Cache As String = (vbCrLf & ReadFileToEnd(FileName) & vbCrLf).Replace(vbCrLf, vbCr).Replace(vbLf, vbCr).Replace(vbCr, vbCrLf).Replace(vbCrLf & vbCrLf, vbCrLf)
-                Dim Ini As New IniCache With {.content = Cache}
-                CacheIni.Add(FileName, Ini)
-                Return Ini
+        SyncLock IniLock
+            If Not FileName.Contains(":\") Then FileName = PATH & "PCL\" & FileName & ".ini"
+            If CacheIni.ContainsKey(FileName) Then
+                '返回缓存中的信息
+                Dim Cache As New IniCache
+                CacheIni.TryGetValue(FileName, Cache)
+                Return Cache '防止ByRef导致缓存变更
             Else
-                '返回空信息
-                Dim Ini As New IniCache With {.content = ""}
-                CacheIni.Add(FileName, Ini)
-                Return Ini
+                If File.Exists(FileName) Then
+                    '返回文件信息并且记入缓存
+                    Dim Cache As String = (vbCrLf & ReadFileToEnd(FileName) & vbCrLf).Replace(vbCrLf, vbCr).Replace(vbLf, vbCr).Replace(vbCr, vbCrLf).Replace(vbCrLf & vbCrLf, vbCrLf)
+                    Dim Ini As New IniCache With {.content = Cache}
+                    CacheIni.Add(FileName, Ini)
+                    Return Ini
+                Else
+                    '返回空信息
+                    Dim Ini As New IniCache With {.content = ""}
+                    CacheIni.Add(FileName, Ini)
+                    Return Ini
+                End If
             End If
-        End If
+        End SyncLock
     End Function
     ''' <summary>
     ''' 读取Ini文件，这可能会使用到缓存。
@@ -1011,20 +1022,24 @@ Public Module Modules
     ''' <param name="DefaultValue">没有找到键时返回的默认值。</param>
     Public Function ReadIni(ByVal FileName As String, ByVal Key As String, Optional ByVal DefaultValue As String = "") As String
         Try
-            '获取目前文件
-            Dim NowIni As IniCache = GetIni(FileName)
-            If IsNothing(NowIni) Then Return DefaultValue
-            '使用缓存
-            If NowIni.cache.ContainsKey(Key) Then Return If(NowIni.cache(Key), DefaultValue)
-            '新读取文件
-            If NowIni.content.Contains(vbCrLf & Key & ":") Then
-                Dim Ret As String = Mid(NowIni.content, NowIni.content.IndexOf(vbCrLf & Key & ":") + 3)
-                Ret = If(Ret.Contains(vbCrLf), Mid(Ret, 1, Ret.IndexOf(vbCrLf)), Ret).Replace(Key & ":", "")
-                NowIni.cache.Add(Key, If(Ret = vbLf, "", Ret))
-                Return If(Ret = vbLf, "", Ret)
-            Else
-                Return DefaultValue
-            End If
+            SyncLock IniLock
+                '获取目前文件
+                Dim NowIni As IniCache = GetIni(FileName)
+                If IsNothing(NowIni) Then Return DefaultValue
+                '使用缓存
+                If NowIni.cache.ContainsKey(Key) Then Return If(NowIni.cache(Key), DefaultValue)
+                '新读取文件
+                If NowIni.content.Contains(vbCrLf & Key & ":") Then
+                    Dim Ret As String = Mid(NowIni.content, NowIni.content.IndexOf(vbCrLf & Key & ":") + 3)
+                    Ret = If(Ret.Contains(vbCrLf), Mid(Ret, 1, Ret.IndexOf(vbCrLf)), Ret).Replace(Key & ":", "")
+                    ' 【修复】改用赋值而非 cache.Add：并发时同一个键被添加两次会抛 ArgumentException，
+                    ' 而该异常会被下面的 Catch 吞掉，导致刚写入的值读出来变成默认值。
+                    NowIni.cache(Key) = If(Ret = vbLf, "", Ret)
+                    Return If(Ret = vbLf, "", Ret)
+                Else
+                    Return DefaultValue
+                End If
+            End SyncLock
         Catch ex As Exception
             '读取失败
             Return DefaultValue
@@ -1038,30 +1053,38 @@ Public Module Modules
     ''' <param name="Value">值。</param>
     ''' <remarks></remarks>
     Public Sub WriteIni(ByVal FileName As String, ByVal Key As String, ByVal Value As String)
-        On Error Resume Next
-        FileName = If(FileName.Contains(":\"), FileName, PATH & "PCL\" & FileName & ".ini")
-        If IsNothing(Value) Then Value = ""
-        Value = Value.Replace(vbCrLf, "")
-        '创建文件夹
-        If Not Directory.Exists(GetPathFromFullPath(FileName)) Then Directory.CreateDirectory(GetPathFromFullPath(FileName))
-        '获取目前文件
-        Dim NowFile As String = GetIni(FileName).content
-        '如果值一样就不处理
-        If NowFile.Contains(vbCrLf & Key & ":" & Value & vbCrLf) Then Exit Sub
-        '处理文件
-        Dim FindResult As String = ReadIni(FileName, Key)
-        If FindResult = "" And Not NowFile.Contains(vbCrLf & Key & ":") Then
-            '不存在这个键
-            NowFile = NowFile & vbCrLf & Key & ":" & Value
-        Else
-            '存在这个键
-            NowFile = NowFile.Replace(vbCrLf & Key & ":" & FindResult & vbCrLf, vbCrLf & Key & ":" & Value & vbCrLf)
-        End If
-        WriteFile(FileName, NowFile)
-        '刷新目前缓存
-        CacheIni(FileName).content = NowFile
-        CacheIni(FileName).cache.Remove(Key)
-        CacheIni(FileName).cache.Add(Key, Value)
+        ' 【修复】去掉原先的 On Error Resume Next：它会把一切写入错误静默吞掉，
+        ' 使「设置没保存」变得毫无痕迹。这里改为整段加锁并把异常记入日志，
+        ' 既不打断调用方，出问题时也能查。
+        SyncLock IniLock
+            Try
+                FileName = If(FileName.Contains(":\"), FileName, PATH & "PCL\" & FileName & ".ini")
+                If IsNothing(Value) Then Value = ""
+                Value = Value.Replace(vbCrLf, "")
+                '创建文件夹
+                If Not Directory.Exists(GetPathFromFullPath(FileName)) Then Directory.CreateDirectory(GetPathFromFullPath(FileName))
+                '获取目前文件
+                Dim NowFile As String = GetIni(FileName).content
+                '如果值一样就不处理
+                If NowFile.Contains(vbCrLf & Key & ":" & Value & vbCrLf) Then Exit Sub
+                '处理文件
+                Dim FindResult As String = ReadIni(FileName, Key)
+                If FindResult = "" And Not NowFile.Contains(vbCrLf & Key & ":") Then
+                    '不存在这个键
+                    NowFile = NowFile & vbCrLf & Key & ":" & Value
+                Else
+                    '存在这个键
+                    NowFile = NowFile.Replace(vbCrLf & Key & ":" & FindResult & vbCrLf, vbCrLf & Key & ":" & Value & vbCrLf)
+                End If
+                WriteFile(FileName, NowFile)
+                '刷新目前缓存
+                CacheIni(FileName).content = NowFile
+                CacheIni(FileName).cache.Remove(Key)
+                CacheIni(FileName).cache(Key) = Value
+            Catch ex As Exception
+                log("[System] 写入 ini 失败：" & FileName & " / " & Key & "：" & GetStringFromException(ex))
+            End Try
+        End SyncLock
     End Sub
 #End Region
 
