@@ -877,7 +877,9 @@ Public Class formDownloadLeft
             Dim Version As String = Split(ver.id)(0)
             Dim BMCLAPIAddress As String = ""
             If ver.id.Contains("pre") Then
-                BMCLAPIAddress = "https://bmclapi2.bangbang93.com/maven/com/optifine/" & ver.id.Split(" ")(0) & "/preview_OptiFine_" & ver.id.Replace(" ", "_").Replace("_pre", "") & ".jar"
+                ' 【修复】原先多了一次 Replace("_pre", "")，会把 26.2_HD_U_K2_pre1 变成 26.2_HD_U_K2_1，
+                ' 实测该地址返回 404，而 preview_OptiFine_26.2_HD_U_K2_pre1.jar 返回 200（7.78 MB）。
+                BMCLAPIAddress = "https://bmclapi2.bangbang93.com/maven/com/optifine/" & ver.id.Split(" ")(0) & "/preview_OptiFine_" & ver.id.Replace(" ", "_") & ".jar"
             Else
                 BMCLAPIAddress = "https://bmclapi2.bangbang93.com/maven/com/optifine/" & ver.id.Split(" ")(0) & "/OptiFine_" & ver.id.Replace(" ", "_") & ".jar"
             End If
@@ -896,15 +898,28 @@ Public Class formDownloadLeft
                                          Else
                                              Dim OfficialAddress As String = ""
                                              Try
-                                                 OfficialAddress = RegexSearch(GetWebsiteCode(ver.url, New UTF8Encoding(False)), "(?<=Download[^\\s\\S]+a href="")[^""]+")(0)
+                                                 ' 【修复】原正则里的 [^\\s\\S] 把反斜杠与字母 s/S 一并排除，跨不过页面中的 CSS
+                                                 ' 就会中断，实际永远匹配不到内容，其后的 (0) 还会索引越界（异常被下面的空 Catch 吞掉）。
+                                                 ' 另外实测 adloadx 页面改版后已不含任何直接下载链接（15 个 href 全是导航与社交链接），
+                                                 ' 因此这里安全地取第一个指向 .jar 的链接，取不到就保持为空。
+                                                 Dim AddressList As ArrayList = RegexSearch(GetWebsiteCode(ver.url, New UTF8Encoding(False)), "(?<=a href="")[^""]+")
+                                                 For Each Address As String In AddressList
+                                                     If Address.EndsWith(".jar") Then
+                                                         OfficialAddress = Address
+                                                         Exit For
+                                                     End If
+                                                 Next
                                              Catch
                                              End Try
+                                             ' 【修复】官方下载入口已失效，拿不到地址时直接退化为 BMCLAPI 地址，
+                                             ' 避免拼出 optifine.net 首页、把首页 HTML 当成 OptiFine 下载下来。
+                                             Dim OfficialURL As String = If(OfficialAddress = "", BMCLAPIAddress, "http://optifine.net/" & OfficialAddress)
                                              If ReadIni("setup", "DownOptiFine", "1") = "0" Then
                                                  '官方
                                                  WebStart({New WebRequireFile With {.WebURLs = New ArrayList From {
-                                                              "http://optifine.net/" & OfficialAddress,
+                                                              OfficialURL,
                                                               BMCLAPIAddress,
-                                                              "http://optifine.net/" & OfficialAddress,
+                                                              OfficialURL,
                                                               BMCLAPIAddress
                                                           }, .LocalFolder = PATH_DOWNLOAD, .LocalName = "OptiFine_" & ver.id.Replace(" ", "_") & ".jar", .KnownFileSize = 1024 * 64}
                                                       }, "OptiFine " & ver.id, AddressOf OptiFineDownloadSuccess, AddressOf OptiFineDownloadFail, WebRequireSize.AtLeast)
@@ -912,9 +927,9 @@ Public Class formDownloadLeft
                                                  'BMCLAPI
                                                  WebStart({New WebRequireFile With {.WebURLs = New ArrayList From {
                                                               BMCLAPIAddress,
-                                                              "http://optifine.net/" & OfficialAddress,
+                                                              OfficialURL,
                                                               BMCLAPIAddress,
-                                                              "http://optifine.net/" & OfficialAddress
+                                                              OfficialURL
                                                           }, .LocalFolder = PATH_DOWNLOAD, .LocalName = "OptiFine_" & ver.id.Replace(" ", "_") & ".jar", .KnownFileSize = 1024 * 64}
                                                       }, "OptiFine " & ver.id, AddressOf OptiFineDownloadSuccess, AddressOf OptiFineDownloadFail, WebRequireSize.AtLeast)
                                              End If

@@ -1,4 +1,4 @@
-Imports Ionic.Zip
+﻿Imports Ionic.Zip
 
 Public Module modMain
 
@@ -101,7 +101,10 @@ Public Module modMain
             Return _PathEnv
         End Get
         Set(ByVal value As String)
-            _PathEnv = PathEnv
+            ' 【修复】原先写成 _PathEnv = PathEnv（把当前值写回自己），传入的 value 被丢弃，
+            ' 于是 SetJavaEnvironment 刚配置好的 PATH 不生效，之后读到的仍是旧值，
+            ' 表现为每次启动都判定「Java 不在环境变量里」并反复尝试配置环境变量。
+            _PathEnv = value
         End Set
     End Property
     ''' <summary>
@@ -1007,7 +1010,10 @@ FinishSearch:
     Public Sub PoolMinecraftFolder()
         Try
             '等待版本列表加载结束
-            Do While IsPoolVersionListRunning
+            ' 【修复】加超时保护：这段等待运行在 UI 线程上（联机页与设置页的按钮会直接调用本方法），
+            ' 一旦标志位因任何原因没有复位，界面就会永久卡死。超过 30 秒后放弃等待、继续执行。
+            Dim VersionWaitStart As Integer = Environment.TickCount
+            Do While IsPoolVersionListRunning AndAlso Environment.TickCount - VersionWaitStart < 30000
                 Thread.Sleep(25)
             Loop
 
@@ -1672,6 +1678,11 @@ LoadEnd:
             VersionsList = New Dictionary(Of VersionSwapState, ArrayList)
 
         Finally
+            ' 【修复】IsPoolVersionListRunning 原本只在 LoadVersionList 的 Finally（运行于 UI 线程）
+            ' 里复位，而 PoolMinecraftFolder 会在 UI 线程上自旋等待这个标志。两者一旦相遇就会互相等待：
+            ' UI 线程等标志复位，PoolVersionList 又在等 UI 线程执行下面的 Dispatcher.Invoke，
+            ' 界面于是永久卡死，只能结束进程。这里先在 PoolVersionList 自己的线程上复位，确保等待方一定能解除。
+            IsPoolVersionListRunning = False
             frmHomeRight.Dispatcher.Invoke(Sub() frmHomeRight.LoadVersionList())
         End Try
     End Sub
@@ -1685,9 +1696,15 @@ LoadEnd:
 
             If Not ReadIni("setup", "UiBackgroundURL", "") = "" Then
                 log("[Pool] 刷新背景图片开始")
-                DownloadFile(ReadIni("setup", "UiBackgroundURL", ""), PATH & "PCL\back.png" & DOWNLOADING_END)
-                File.Delete(PATH & "PCL\back.png")
-                FileSystem.Rename(PATH & "PCL\back.png" & DOWNLOADING_END, PATH & "PCL\back.png")
+                ' 【修复】DownloadFile 会返回是否下载成功，原代码丢弃返回值就直接「先删后改名」：
+                ' 下载失败时临时文件并不存在，Rename 抛出的异常虽被外层捕获，但用户原有的
+                ' back.png 已经在上一行被删除，自定义背景图就此丢失。改为下载成功后再替换。
+                If DownloadFile(ReadIni("setup", "UiBackgroundURL", ""), PATH & "PCL\back.png" & DOWNLOADING_END) Then
+                    File.Delete(PATH & "PCL\back.png")
+                    FileSystem.Rename(PATH & "PCL\back.png" & DOWNLOADING_END, PATH & "PCL\back.png")
+                Else
+                    log("[Pool] 背景图片下载失败，保留原有图片")
+                End If
                 log("[Pool] 刷新背景图片结束")
             End If
 
@@ -1698,9 +1715,13 @@ LoadEnd:
 
             If Not ReadIni("setup", "UiBarURL", "") = "" Then
                 log("[Pool] 刷新顶栏图片开始")
-                DownloadFile(ReadIni("setup", "UiBarURL", ""), PATH & "PCL\top.png" & DOWNLOADING_END)
-                File.Delete(PATH & "PCL\top.png")
-                FileSystem.Rename(PATH & "PCL\top.png" & DOWNLOADING_END, PATH & "PCL\top.png")
+                ' 【修复】同背景图片：下载失败时不能先删掉用户原有的顶栏图片。
+                If DownloadFile(ReadIni("setup", "UiBarURL", ""), PATH & "PCL\top.png" & DOWNLOADING_END) Then
+                    File.Delete(PATH & "PCL\top.png")
+                    FileSystem.Rename(PATH & "PCL\top.png" & DOWNLOADING_END, PATH & "PCL\top.png")
+                Else
+                    log("[Pool] 顶栏图片下载失败，保留原有图片")
+                End If
                 log("[Pool] 刷新顶栏图片结束")
             End If
 

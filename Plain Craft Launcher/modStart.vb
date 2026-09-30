@@ -1,4 +1,4 @@
-Imports Ionic.Zip
+﻿Imports Ionic.Zip
 
 Module modStart
 
@@ -169,6 +169,15 @@ Module modStart
                         '选择文件结束
                         If Not fileDialog.FileName = "" Then
                             PATH_JAVA = Mid(fileDialog.FileName, 1, fileDialog.FileName.LastIndexOf("\"))
+                            ' 【修复】原先这里直接 GoTo JavaOK，跳过了下方的 WriteReg 与 SetJavaEnvironment，
+                            ' 手动选择的 Java 路径既不写入注册表、也不立即配置环境变量。下次启动时只能靠
+                            ' 环境变量重新找到它；若环境变量更新失败（用户拒绝 UAC），则每次启动都要重选。
+                            WriteReg("SetupJavaPath", PATH_JAVA)
+                            log("[Launch] 人工指定的新的Java路径：" & PATH_JAVA)
+                            Dim thJava As New Thread(AddressOf SetJavaEnvironment)
+                            thJava.Priority = ThreadPriority.AboveNormal
+                            thJava.Start()
+                            Thread.Sleep(2000)
                             GoTo JavaOK
                         End If
                     End Using

@@ -1,4 +1,4 @@
-Imports System.Drawing.Imaging
+﻿Imports System.Drawing.Imaging
 Imports System.Reflection
 Imports System.Security.Cryptography
 Imports System.Windows.Threading
@@ -740,7 +740,9 @@ Public Module Modules
                 If GetFileSize(OutputPath) = Res.Length Then Exit Sub
             End If
             Directory.CreateDirectory(Mid(OutputPath, 1, OutputPath.LastIndexOf("\")))
-            Using OutputStream As New FileStream(OutputPath, FileMode.OpenOrCreate, FileAccess.Write)
+            ' 【修复】原用 OpenOrCreate 且不截断：磁盘上已有文件比嵌入资源更长时，尾部会残留旧字节，
+            ' 得到「新资源 + 旧尾巴」的文件（此处写出的正是要执行的 PCL Admin Manager.exe）。
+            Using OutputStream As New FileStream(OutputPath, FileMode.Create, FileAccess.Write)
                 OutputStream.Write(Res, 0, Res.Length)
                 OutputStream.Flush()
             End Using
