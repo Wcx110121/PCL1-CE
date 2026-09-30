@@ -100,6 +100,8 @@ Public Class formDownloadLeft
                         Dim item As ListItem = New ListItem With {.UseLayoutRounding = True, .Tag = ver, .CanCheck = False, .ButtonLogo = New BitmapImage(New Uri("/Images/appbar.inbox.in.png", UriKind.Relative)), .MainText = ver.id, .SubText = ver.time, .Name = "list" & GetUUID(), .Logo = New BitmapImage(New Uri(PATH_IMAGE & "Block-" & Photo & ".png", UriKind.Absolute)), .ToolTip = If(Photo = "Dirt", "该版本由 PCL 特别提供", Nothing)}
                         AddHandler item.ButtonClick, AddressOf MinecraftDownloadClick
                         panVersion.Children.Add(item)
+                        ' 【改造】每 50 项让出一次 UI 线程，避免一次性创建近千个控件时界面卡死
+                        If panVersion.Children.Count Mod 50 = 0 Then DoUiEvents()
                     Next
                     '最新正式版与最新预览版一样则隐藏一个
                     If item1.MainText = item2.MainText Then
@@ -138,6 +140,8 @@ Public Class formDownloadLeft
                         Dim item As ListItem = New ListItem With {.UseLayoutRounding = True, .Tag = ver, .CanCheck = False, .ButtonLogo = New BitmapImage(New Uri("/Images/appbar.inbox.in.png", UriKind.Relative)), .MainText = ver.id, .SubText = ver.time, .Name = "list" & GetUUID(), .Logo = New BitmapImage(New Uri("/Images/Block-" & Photo & ".png", UriKind.Relative))}
                         AddHandler item.ButtonClick, AddressOf OptiFineDownloadStart
                         panVersion.Children.Add(item)
+                        ' 【改造】每 50 项让出一次 UI 线程，避免一次性创建近千个控件时界面卡死
+                        If panVersion.Children.Count Mod 50 = 0 Then DoUiEvents()
                     Next
                     '最新正式版与最新预览版一样则隐藏一个
                     If item1.MainText = item2.MainText Then
@@ -163,6 +167,8 @@ Public Class formDownloadLeft
                             Dim item As ListItem = New ListItem With {.SubText = "", .ShowButton = False, .UseLayoutRounding = True, .CanCheck = True, .MainText = Version, .Name = "list" & GetUUID(), .Logo = New BitmapImage(New Uri("/Images/Block-Grass.png", UriKind.Relative))}
                             AddHandler item.Change, AddressOf ChangeForgeVersionSelection
                             panForge.Children.Add(item)
+                            ' 【改造】每 50 项让出一次 UI 线程，避免一次性创建大量控件时界面卡死
+                            If panForge.Children.Count Mod 50 = 0 Then DoUiEvents()
                         Next
                         '引发第一个的改变事件
                         If panForge.Children.Count > 0 Then
@@ -185,6 +191,8 @@ Public Class formDownloadLeft
                                 Dim item As ListItem = New ListItem With {.UseLayoutRounding = True, .Tag = ver, .CanCheck = False, .ButtonLogo = New BitmapImage(New Uri("/Images/appbar.inbox.in.png", UriKind.Relative)), .MainText = "Forge " & ver.version, .SubText = ver.time, .Name = "list" & GetUUID(), .Logo = New BitmapImage(New Uri("/Images/Block-Anvil.png", UriKind.Relative))}
                                 AddHandler item.ButtonClick, AddressOf ForgeDownloadStart
                                 panVersion.Children.Add(item)
+                                ' 【改造】每 50 项让出一次 UI 线程，避免一次性创建大量控件时界面卡死
+                                If panVersion.Children.Count Mod 50 = 0 Then DoUiEvents()
                             Next
                         Catch
                             '时不时会出现集合已修改的Exception，事实证明重新加载一次就成了，管它啥原因嘞

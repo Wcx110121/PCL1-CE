@@ -1202,6 +1202,20 @@ Public Module Modules
     Private _SourceSpeedTested As Boolean = False
     Private _MojangFaster As Boolean = True
     ''' <summary>
+    ''' 【改造】处理长循环时让出一次 UI 线程，使界面保持响应。
+    ''' 下载页在切换列表时需要创建几百个 ListItem（OptiFine 498 个、原版近 900 个），
+    ''' 原先在一个 Timer tick 里全部建完，期间消息队列得不到处理，表现为「切换到下载页
+    ''' 会未响应一段时间、在几个列表之间来回切换一卡一卡」。在循环中定期调用本方法即可。
+    ''' </summary>
+    Public Sub DoUiEvents()
+        Try
+            Dim Frame As New DispatcherFrame()
+            Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, New Action(Sub() Frame.Continue = False))
+            Dispatcher.PushFrame(Frame)
+        Catch
+        End Try
+    End Sub
+    ''' <summary>
     ''' 【改造】下载源自动测速：测量官方源与 BMCLAPI 的响应耗时，判断哪一个更快。
     ''' 结果在本次运行内缓存，避免每次下载都重复测速。
     ''' </summary>
