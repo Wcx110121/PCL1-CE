@@ -1125,14 +1125,8 @@ StartReload:
                             "附加使用条款", "同意", "不同意") <> 1 Then Exit Sub
             End If
             Dim Text As String = "你今天的人品值是：" & Score & vbCrLf & GetJrrpMessage(Score)
-            If Score = 100 Then
-                ' 【改造】PCL2 在满分时会解锁隐藏主题「欧皇彩」。PCL1-CE 没有该主题，
-                ' 改为解锁自身已有的两个隐藏主题，同样作为满分的奖励。
-                WriteReg("ThemeHunluan", "True")
-                WriteReg("ThemeDeathBlue", "True")
-                RefreshHidden()
-                Text &= vbCrLf & vbCrLf & "隐藏主题「混乱黄」与「死机蓝」已解锁，可在主题设置中查看！"
-            End If
+            ' 【改造】满分不再解锁任何隐藏主题。混乱黄由关于页连点 Logo 75 次解锁，
+            ' 死机蓝由愚人节彩蛋解锁，人品满分只显示结果本身。
             MyMsgbox(Text, "今日人品")
         Catch ex As Exception
             ExShow(ex, "查看今日人品失败", ErrorLevel.AllUsers)
