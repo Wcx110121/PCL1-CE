@@ -1072,7 +1072,7 @@ Public Module Modules
     ''' <param name="Encode">网页的编码，通常为UTF-8。</param>
     ''' <returns></returns>
     ''' <remarks></remarks>
-    Public Function GetWebsiteCode(ByVal URL As String, ByVal Encode As Encoding) As String
+    Public Function GetWebsiteCode(ByVal URL As String, ByVal Encode As Encoding, Optional ByVal Silent As Boolean = False) As String
         If MODE_OFFLINE Then Return ""
 
         '初始化
@@ -1092,13 +1092,79 @@ Public Module Modules
             strm = New StreamReader(res.GetResponseStream(), Encode)
             GetWebsiteCode = strm.ReadToEnd
         Catch ex As Exception
-            If Not URL.Contains("https://sessionserver.mojang.com/session/minecraft/profile/") Then ExShow(ex, "获取网页源代码失败：" & URL)
+            'Silent 供双源竞速使用：竞速时只要有一方成功即可，失败的一方不必弹出提示
+            If Not Silent AndAlso Not URL.Contains("https://sessionserver.mojang.com/session/minecraft/profile/") Then ExShow(ex, "获取网页源代码失败：" & URL)
         Finally
             '释放资源
             If Not IsNothing(strm) Then strm.Dispose()
             If Not IsNothing(res) Then res.Close()
             If Not IsNothing(req) Then req.Abort()
         End Try
+    End Function
+
+    ''' <summary>
+    ''' 【改造】双源竞速：同时向两个地址发起请求，返回先拿到的有效内容。
+    ''' 相比「先请求官方源，失败或超时后再请求镜像」，竞速不需要等第一个源失败，
+    ''' 官方源可用时也不会白白多花一次往返，慢的那个源则自然被忽略。
+    ''' </summary>
+    ''' <param name="UrlA">第一个地址，通常是官方源。</param>
+    ''' <param name="UrlB">第二个地址，通常是国内镜像。</param>
+    ''' <param name="Encode">网页编码。</param>
+    ''' <param name="WinnerUrl">输出参数：返回的内容来自哪个地址。两者都失败时为空字符串。</param>
+    ''' <param name="MinLength">内容的最小长度，短于该值视为无效结果。</param>
+    ''' <returns>先返回的有效内容；两者都失败时返回空字符串。</returns>
+    ''' <remarks>两个源的响应格式可能不同（例如 OptiFine 官方是网页、镜像是 JSON），
+    ''' 调用方需要依据 WinnerUrl 决定用哪种方式解析。</remarks>
+    Public Function GetWebsiteCodeRace(ByVal UrlA As String, ByVal UrlB As String, ByVal Encode As Encoding,
+                                       ByRef WinnerUrl As String, Optional ByVal MinLength As Integer = 200) As String
+        WinnerUrl = ""
+        If MODE_OFFLINE Then Return ""
+
+        Dim Lock As New Object
+        Dim Result As String = "" '先拿到的有效内容
+        Dim Winner As String = "" '该内容来自哪个地址
+        Dim Finished As Integer = 0 '已经结束的请求数
+
+        Dim Runner As Action(Of String) =
+            Sub(Url As String)
+                Dim Content As String = ""
+                Try
+                    Content = GetWebsiteCode(Url, Encode, True)
+                Catch
+                    Content = ""
+                End Try
+                Dim Valid As Boolean = (Not IsNothing(Content)) AndAlso Content.Length >= MinLength
+                SyncLock Lock
+                    Finished += 1
+                    If Result = "" AndAlso Valid Then
+                        Result = Content
+                        Winner = Url
+                    End If
+                    Monitor.PulseAll(Lock)
+                End SyncLock
+            End Sub
+
+        Dim ThreadA As New Thread(Sub() Runner(UrlA))
+        Dim ThreadB As New Thread(Sub() Runner(UrlB))
+        ThreadA.IsBackground = True
+        ThreadB.IsBackground = True
+        ThreadA.Start()
+        ThreadB.Start()
+
+        '等待先返回的一方；两个都结束或整体超时后放弃
+        SyncLock Lock
+            Do While Result = "" AndAlso Finished < 2
+                If Not Monitor.Wait(Lock, 25000) Then Exit Do
+            Loop
+        End SyncLock
+
+        If Winner <> "" Then
+            log("[Download] 双源竞速选用：" & Winner)
+            WinnerUrl = Winner
+        Else
+            log("[Download] 双源竞速两个来源均不可用：" & UrlA & " / " & UrlB)
+        End If
+        Return Result
     End Function
 
     ''' <summary>

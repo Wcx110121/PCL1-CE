@@ -1,4 +1,4 @@
-﻿Imports Ionic.Zip
+Imports Ionic.Zip
 
 Public Class formDownloadLeft
 
@@ -374,19 +374,19 @@ Public Class formDownloadLeft
         End If
 
         '获取版本列表
+        ' 【改造】双源竞速：同时请求 Mojang 官方与 BMCLAPI，取先返回的有效结果。
+        ' 两个源返回的都是同格式的 version_manifest.json，因此不必关心赢家是谁。
+        ' 原先「先请求一个源、失败后再请求另一个」必须等第一个源超时（最长 20 秒）才会切换。
         Try
+            Dim OfficialUrl As String = "https://launchermeta.mojang.com/mc/game/version_manifest.json"
+            Dim MirrorUrl As String = "https://bmclapi2.bangbang93.com/mc/game/version_manifest.json"
+            Dim Winner As String = ""
             If ReadIni("setup", "DownVersion", "0") = "0" Then
-                MinecraftInfo = GetWebsiteCode("https://launchermeta.mojang.com/mc/game/version_manifest.json", Encoding.Default)
-                If MinecraftInfo = "" Then
-                    MinecraftInfo = GetWebsiteCode("https://bmclapi2.bangbang93.com/mc/game/version_manifest.json", Encoding.Default)
-                    If IsShowHint And Not MinecraftInfo = "" Then ShowHint("获取官方 Minecraft 版本列表失败，自动切换为 BMCLAPI")
-                End If
+                MinecraftInfo = GetWebsiteCodeRace(OfficialUrl, MirrorUrl, Encoding.Default, Winner, 300)
             Else
-                MinecraftInfo = GetWebsiteCode("https://bmclapi2.bangbang93.com/mc/game/version_manifest.json", Encoding.Default)
-                If MinecraftInfo = "" Then
-                    MinecraftInfo = GetWebsiteCode("https://launchermeta.mojang.com/mc/game/version_manifest.json", Encoding.Default)
-                End If
+                MinecraftInfo = GetWebsiteCodeRace(MirrorUrl, OfficialUrl, Encoding.Default, Winner, 300)
             End If
+            If IsShowHint AndAlso Winner = MirrorUrl Then ShowHint("已自动选用 BMCLAPI 获取 Minecraft 版本列表")
             If Len(MinecraftInfo) < 300 Then Throw New WebException("获取到的列表长度不足：" & MinecraftInfo)
         Catch ex As Exception
             ExShow(ex, "获取 Minecraft 版本列表失败")
