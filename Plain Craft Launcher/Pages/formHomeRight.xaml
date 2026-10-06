@@ -1,0 +1,88 @@
+<Window
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:sys="clr-namespace:System;assembly=mscorlib" 
+    xmlns:my="clr-namespace:pcl"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" mc:Ignorable="d" x:Class="formHomeRight"
+    Title="frmHome" ShowInTaskbar="False" ResizeMode="NoResize" WindowStyle="None" AllowsTransparency="True" FontFamily="Microsoft YaHei, SimHei, SimSun" d:DesignHeight="337" d:DesignWidth="344">
+    <Grid x:Name="panMain" Height="323" UseLayoutRounding="False" Grid.Column="1" Grid.Row="1" VerticalAlignment="Top">
+        <Border BorderThickness="1" x:Name="panBack" VerticalAlignment="Center" Width="225" HorizontalAlignment="Center" CornerRadius="5" Background="#66FFFFFF" UseLayoutRounding="True" Height="277" />
+        <Grid x:Name="panLaunch"  UseLayoutRounding="True" Height="277" VerticalAlignment="Center" HorizontalAlignment="Center" Width="225" >
+            <Label FontSize="13" Foreground="{DynamicResource Color4}" Margin="0,267,1,0" HorizontalAlignment="Center" VerticalAlignment="Top" Background="#01FFFFFF" Opacity="0" x:Name="btnUpdate" Padding="0" />
+            <Grid x:Name="btnTopMojang" Height="63" HorizontalAlignment="Left" Margin="56,14,0,0" VerticalAlignment="Top" Width="113" Background="#02FFFFFF">
+                <Path Data="F1M38,19L57,28.5L57,47.5L38,57L19,47.5L19,28.5L38,19ZM22.1667,30.0833L22.1667,45.9167L25.3333,47.5L36.4167,53.0417L36.4167,37.2083L22.1667,30.0833ZM50.6666,47.5L53.8333,45.9167L53.8333,30.0833L39.5833,37.2083L39.5833,53.0417L50.6666,47.5ZM38,22.1667L25.3333,28.5L38,34.8334L50.6666,28.5L38,22.1667Z" Fill="{DynamicResource Color4}" Margin="41,6,0,0" Stretch="Fill" HorizontalAlignment="Left" VerticalAlignment="Top" Width="30" Height="30" UseLayoutRounding="False" />
+                <Label Content="微软账户" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" Margin="0,42,0,0" VerticalAlignment="Top" Padding="0" FontSize="13" Foreground="{DynamicResource Color4}" UseLayoutRounding="False" />
+            </Grid>
+            <Grid Height="83" HorizontalAlignment="Left" Margin="16,91,0,0" x:Name="panLogin" VerticalAlignment="Top" Width="192" Visibility="Collapsed" Background="#01FFFFFF" Cursor="Hand">
+                <Border BorderBrush="{DynamicResource Color4}" BorderThickness="1" CornerRadius="3" Height="34" HorizontalAlignment="Center" VerticalAlignment="Center" Width="162" />
+                <Path Data="F1 M 21.5,23L 54.5,23C 56.2489,23 58,24.7511 58,26.5L 58,49.5C 58,51.2489 56.2489,53 54.5,53L 21.5,53C 19.7511,53 18,51.2489 18,49.5L 18,26.5C 18,24.7511 19.7511,23 21.5,23 Z M 22,47C 22,48.3117 22.6883,49 24,49L 52,49C 53.3117,49 54,48.3117 54,47L 54,29L 40.6563,42.6567C 39.4197,43.8933 37.4146,43.8933 36.178,42.6567L 22,29L 22,47 Z M 25,27L 36.7378,38.7381C 37.6653,39.6656 39.169,39.6656 40.0965,38.7381L 52,27L 25,27 Z " Fill="{DynamicResource Color4}" Height="15" HorizontalAlignment="Left" Margin="24,0,0,0" VerticalAlignment="Center" Stretch="Fill" Width="20" UseLayoutRounding="False" />
+                <TextBox Padding="0" BorderThickness="0" Background="#00000000" CaretBrush="{DynamicResource Color5}" Foreground="{DynamicResource Color5}" Height="34" HorizontalAlignment="Right" Margin="0,0,16,0" IsReadOnly="True" IsHitTestVisible="False" x:Name="textLoginEmail" VerticalAlignment="Center" Width="120" FontSize="12" BorderBrush="#00000000" VerticalContentAlignment="Center" TextAlignment="Center" />
+            </Grid>
+            <Grid Height="83" HorizontalAlignment="Left" Margin="16,91,0,0" x:Name="panMojang" VerticalAlignment="Top" Width="192" Visibility="Collapsed" Background="#01FFFFFF" UseLayoutRounding="False">
+                <my:Timer Height="45" HorizontalAlignment="Left" Margin="4,6,0,0" x:Name="timerMojangCheck" VerticalAlignment="Top" Width="92" Interval="200" />
+                <Image Height="40" Margin="76,4,0,0" x:Name="imgMojangHead2" RenderOptions.BitmapScalingMode="NearestNeighbor" UseLayoutRounding="True" VerticalAlignment="Top" HorizontalAlignment="Left" Width="40" Cursor="Hand" />
+                <Image Height="46" Margin="73,1,0,0" x:Name="imgMojangHead1" RenderOptions.BitmapScalingMode="NearestNeighbor" UseLayoutRounding="True" VerticalAlignment="Top" Stretch="UniformToFill" HorizontalAlignment="Left" Width="46" IsHitTestVisible="False" />
+                <StackPanel Height="29" HorizontalAlignment="Center" Margin="0,54,0,0" VerticalAlignment="Top" Orientation="Horizontal" x:Name="panMojangInner" UseLayoutRounding="False" Background="#01FFFFFF">
+                    <TextBlock Width="10" x:Name="labMojangLogoutPosition"/>
+                    <Label FontSize="15" Foreground="{DynamicResource Color5}" Height="29" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" x:Name="labMojangName" Padding="0" />
+                    <Path Data="F1 M 51.0071,19.0027L 51.0071,27.0038L 48.0067,27.0038L 48.0067,22.0031L 25.0035,22.0031L 25.0035,54.0075L 48.0067,54.0075L 48.0067,49.0068L 51.0071,49.0068L 51.0071,57.008L 22.1698,57.008L 22.0031,19.0027L 51.0071,19.0027 Z M 30.0042,35.0049L 45.2563,35.0049L 37.005,28.0039L 47.0066,28.0039L 58.5082,38.0053L 47.0066,48.0067L 37.005,48.0067L 45.2563,41.0057L 30.0042,41.0057L 30.0042,35.0049 Z " Fill="{DynamicResource Color5}" Height="0" Stretch="Fill" Width="0" Margin="10,0,0,0" x:Name="btnMojangLogout" IsHitTestVisible="False" Stroke="#00000000"/>
+                </StackPanel>
+            </Grid>
+            <Grid Height="60" Margin="29,196,0,0" x:Name="panStart" VerticalAlignment="Top" HorizontalAlignment="Left" Width="166" RenderTransformOrigin="0.5,0.5">
+                <Grid.RenderTransform>
+                    <ScaleTransform ScaleY="1" ScaleX="1"/>
+                </Grid.RenderTransform>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="{Binding ActualWidth, ElementName=panStartLeft}" />
+                    <ColumnDefinition />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <Border x:Name="rectStart" BorderThickness="1" CornerRadius="3" Background="{DynamicResource Color4}" UseLayoutRounding="True" VerticalAlignment="Top" Height="60" HorizontalAlignment="Left" Width="166" Grid.ColumnSpan="3"/>
+                <Border x:Name="rectStartProcess" BorderThickness="1" CornerRadius="3" Background="{DynamicResource Color3}" UseLayoutRounding="False" VerticalAlignment="Top" Height="60" HorizontalAlignment="Left" Width="0" Grid.ColumnSpan="3"/>
+                <TextBlock x:Name="panStartLeft" Width="12" HorizontalAlignment="Left" />
+                <Label Content="加载版本列表中" VerticalAlignment="Top" Foreground="White" FontSize="17" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" Grid.Column="1" x:Name="labStartTop" UseLayoutRounding="False" Padding="0" Margin="0,17,0,0" Height="26" />
+                <Label Content="正在读取版本列表" FontSize="11" Foreground="White" HorizontalContentAlignment="Center" Margin="0,40,0,0" VerticalAlignment="Top" VerticalContentAlignment="Top" x:Name="labStartButtom" Grid.Column="1" Padding="0" UseLayoutRounding="False" Opacity="0" />
+                <Path Fill="White" Height="9" HorizontalAlignment="Left" Margin="6.2,21,-11.2,0" x:Name="pathStart1" Stretch="Fill" VerticalAlignment="Top" Width="17" Data="F1M38,15.8334L58.5833,23.75 58.5833,30.0833 38,38 17.4167,30.0833 17.4166,23.75 38,15.8334z" UseLayoutRounding="False" Grid.Column="2" Opacity="0" />
+                <Path Fill="White" Height="6.48" HorizontalAlignment="Left" Margin="6.2,28.25,-11.2,0" x:Name="pathStart2" Stretch="Fill" VerticalAlignment="Top" Width="17" Data="F1M58.5833,44.3333L58.5833,52.25 38,60.1667 17.4167,52.25 17.4167,44.3333 21.5333,45.9167 38,52.25 54.4667,45.9167 58.5833,44.3333z" UseLayoutRounding="False" Grid.Column="2" Opacity="0" />
+                <Path Fill="White" Height="6.48" HorizontalAlignment="Left" Margin="6.2,33,-11.2,0" x:Name="pathStart3" Stretch="Fill" VerticalAlignment="Top" Width="17" Data="F1M58.5833,33.25L58.5833,41.1667 38,49.0833 17.4167,41.1667 17.4167,33.25 21.5333,34.8333 38,41.1667 54.4666,34.8333 58.5833,33.25z" UseLayoutRounding="False" Grid.Column="2" Opacity="0" />
+                <Rectangle x:Name="btnStartMore" Fill="#01FFFFFF" UseLayoutRounding="True" Grid.Column="2" IsHitTestVisible="False" Width="12" d:IsHidden="True" />
+                <Rectangle x:Name="btnStart" Fill="#01FFFFFF" UseLayoutRounding="True" Grid.ColumnSpan="2" d:IsHidden="True" />
+            </Grid>
+        </Grid>
+        <Grid VerticalAlignment="Center" HorizontalAlignment="Center" Width="225" x:Name="panVersion" Background="#01FFFFFF" IsHitTestVisible="False" UseLayoutRounding="True" Opacity="0">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="42" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <Path Data="F1 M 35.8724,37.6042L 39.0391,40.7708L 50.5182,51.8542L 40.2266,51.8542L 25.1849,37.6041L 40.2266,23.3542L 50.5182,23.3542L 39.0391,34.4375L 35.8724,37.6042 Z " Fill="{DynamicResource Color4}" Height="14" Margin="16,19,0,0" Stretch="Fill" Width="10" HorizontalAlignment="Left" VerticalAlignment="Top" Opacity="0.8" x:Name="pathVersionBack" />
+            <Label Content="返回" HorizontalAlignment="Left" Margin="39,11.5,0,0" VerticalAlignment="Top" FontSize="15" Padding="0" Height="29" VerticalContentAlignment="Center" Foreground="{DynamicResource Color4}" Opacity="0.8" x:Name="labVersionBack" />
+            <TextBlock Height="42" x:Name="btnVersionBack" VerticalAlignment="Top" Background="#01FFFFFF" />
+            <Grid Height="0" x:Name="panVersionHostNORMAL" IsHitTestVisible="False" Opacity="0" Visibility="Collapsed" Margin="0,7.5,0,34.5" MaxHeight="0" Tag="NORMAL">
+                <Path Width="20" Height="20" Stretch="None" HorizontalAlignment="Left" Margin="5,3.5,0,0" Data="M10,1A9,9,0,1,0,10.001,1 M6,8L10,12 14,8" Stroke="#FF242424" StrokeThickness="2" VerticalAlignment="Top" IsHitTestVisible="False" x:Name="pathVersionHostNORMAL"/>
+                <Label Content="折叠的版本" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="0" Margin="33,0,0,0" FontSize="13.5" Foreground="#FF242424" IsHitTestVisible="False" x:Name="labVersionHostNORMAL"/>
+            </Grid>
+            <Grid x:Name="panVersionListHost" Width="183" Grid.Row="1" HorizontalAlignment="Left" MaxHeight="235" Margin="13,8,0,15" VerticalAlignment="Center" Height="{Binding ActualHeight, ElementName=panVersionList}">
+                <StackPanel x:Name="panVersionList" VerticalAlignment="Top">
+                    <StackPanel x:Name="panVersionNORMAL"/>
+                    <Grid Height="0" x:Name="panVersionHostSWAP" Tag="SWAP" Background="#1AFFFFFF">
+                        <Path Width="20" Height="20" Stretch="None" HorizontalAlignment="Left" Margin="5,3.5,0,0" Data="M10,1A9,9,0,1,0,10.001,1 M6,8L10,12 14,8" Stroke="#FF242424" StrokeThickness="2" VerticalAlignment="Top" IsHitTestVisible="False" x:Name="pathVersionHostSWAP"/>
+                        <Label Content="折叠的版本" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="0" Margin="33,0,0,0" FontSize="13.5" Foreground="#FF242424" IsHitTestVisible="False" x:Name="labVersionHostSWAP"/>
+                    </Grid>
+                    <StackPanel x:Name="panVersionSWAP"/>
+                    <Grid Height="0" x:Name="panVersionHostOLD" Tag="OLD" Background="#1AFFFFFF">
+                        <Path Width="20" Height="20" Stretch="None" HorizontalAlignment="Left" Margin="5,3.5,0,0" Data="M10,1A9,9,0,1,0,10.001,1 M6,8L10,12 14,8" Stroke="#FF242424" StrokeThickness="2" VerticalAlignment="Top" IsHitTestVisible="False" x:Name="pathVersionHostOLD"/>
+                        <Label Content="过时的版本" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="0" Margin="33,0,0,0" FontSize="13.5" Foreground="#FF242424" IsHitTestVisible="False" x:Name="labVersionHostOLD"/>
+                    </Grid>
+                    <StackPanel x:Name="panVersionOLD"/>
+                    <Grid Height="0" x:Name="panVersionHostWRONG" Tag="WRONG" Background="#1AFFFFFF">
+                        <Path Width="20" Height="20" Stretch="None" HorizontalAlignment="Left" Margin="5,3.5,0,0" Data="M10,1A9,9,0,1,0,10.001,1 M6,8L10,12 14,8" Stroke="#FF242424" StrokeThickness="2" VerticalAlignment="Top" IsHitTestVisible="False" x:Name="pathVersionHostWRONG"/>
+                        <Label Content="错误的版本" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="0" Margin="33,0,0,0" FontSize="13.5" Foreground="#FF242424" IsHitTestVisible="False" x:Name="labVersionHostWRONG"/>
+                    </Grid>
+                    <StackPanel x:Name="panVersionWRONG"/>
+                </StackPanel>
+            </Grid>
+            <my:VScroll Margin="201,0,0,7" x:Name="scrollVersion" Grid.Row="1" HorizontalAlignment="Left" Width="10" Height="{Binding ActualHeight, ElementName=panVersionListHost}" Opacity="0" />
+        </Grid>
+    </Grid>
+</Window>
+ 
