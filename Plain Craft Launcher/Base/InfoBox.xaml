@@ -1,0 +1,69 @@
+<UserControl x:Class="InfoBox"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             mc:Ignorable="d" 
+             d:DesignHeight="300" d:DesignWidth="300" Width="230" Height="120" UseLayoutRounding="True">
+    <Border x:Name="panBackAll">
+        <Border.Background>
+            <ImageBrush ImageSource="/pcl1ce;component/Images/Infobox-Bg.png" />
+        </Border.Background>
+        <Grid Width="220" Height="110" Name="panBack" Background="{x:Null}">
+            <Border BorderThickness="1" Width="222" Height="112" Margin="-1,-1,0,0">
+                <Image Name="imgBack" Stretch="UniformToFill" HorizontalAlignment="Center" VerticalAlignment="Center" MinWidth="220" MinHeight="110">
+                    <Image.Effect>
+                        <BlurEffect x:Name="blur" Radius="4"/>
+                    </Image.Effect>
+                </Image>
+                <Border.BorderBrush>
+                    <SolidColorBrush />
+                </Border.BorderBrush>
+            </Border>
+            <!--
+                这里原本挂着一个 DropShadowEffect(ShadowDepth=0, BlurRadius=3)，
+                用途是给白字描一圈深色轮廓，好让字压在任意亮度的照片上都看得清。
+                但 WPF 的 Effect 会把整棵子树先渲染成一张中间位图再合成，代价是：
+                  · 文字失去 ClearType 次像素抗锯齿，退化成灰度抗锯齿；
+                  · 位图按当前缩放比例（这台机器是 150%）栅格化一次，再被缩放显示。
+                两者叠加，卡片文字看起来就明显比「开始游戏」按钮糊一档，像被降到了 480p。
+                现在改成去掉特效、把蒙版加深（12% → 40% 黑），靠不透明度换对比度：
+                文字恢复正常的清晰度，白字压在照片上依旧读得清。
+            -->
+            <Grid Name="panInfo" Background="#66000000">
+                <Label HorizontalAlignment="Left" Margin="38,0,0,65" Name="labTitle" Foreground="#FFFCFCFC" FontSize="13" Padding="2" Height="27" VerticalAlignment="Center" VerticalContentAlignment="Center" />
+                <Path Fill="#FFFCFCFC" Height="20" Margin="12,12,0,0" Stretch="Fill" Width="20" HorizontalAlignment="Left" VerticalAlignment="Top" Name="path" />
+                <TextBlock Name="labContent" Foreground="#FFFCFCFC" VerticalAlignment="Center" Padding="2" HorizontalAlignment="Center" MaxWidth="205" FontSize="14.5" Margin="0,25,0,0" TextWrapping="WrapWithOverflow" TextAlignment="Center" MaxHeight="72" />
+            </Grid>
+        </Grid>
+    </Border>
+    <UserControl.Triggers>
+        <EventTrigger RoutedEvent="UIElement.MouseLeftButtonDown">
+            <BeginStoryboard>
+                <Storyboard>
+                    <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="0.98" Duration="0:0:0.1" />
+                    <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="0.98" Duration="0:0:0.1" />
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+        <EventTrigger RoutedEvent="UIElement.MouseLeave">
+            <BeginStoryboard>
+                <Storyboard>
+                    <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="1" Duration="0:0:0.1" />
+                    <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="1" Duration="0:0:0.1" />
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+        <EventTrigger RoutedEvent="UIElement.MouseLeftButtonUp">
+            <BeginStoryboard>
+                <Storyboard>
+                    <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX" To="1" Duration="0:0:0.1" />
+                    <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY" To="1" Duration="0:0:0.1" />
+                </Storyboard>
+            </BeginStoryboard>
+        </EventTrigger>
+    </UserControl.Triggers>
+    <UserControl.RenderTransform>
+        <ScaleTransform ScaleX="1" ScaleY="1" CenterX="115" CenterY="60"></ScaleTransform>
+    </UserControl.RenderTransform>
+</UserControl>
